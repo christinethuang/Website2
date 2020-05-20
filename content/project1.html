@@ -1,0 +1,728 @@
+---
+title: "Project 1"
+author: "SDS 348"
+output:
+  pdf_document: default
+  html_document: default
+showpagemeta: false
+---
+
+
+
+<div id="project-1-exploratory-data-analysis" class="section level2">
+<h2>Project 1: Exploratory Data Analysis</h2>
+<div id="finding-data" class="section level3">
+<h3>Finding Data</h3>
+<p>I chose to use the datasets, trump_approval_trend and trump_approval_poll, because I was curious and wanted to see the percentage of those who approve or disapprove of President Trump. Additionally, I wanted to see the differences and similarities between the two datasets in terms of estimate and actual rating. The trump_approval_trend has 11 variables and 1044 rows, and the trump_approval_poll has 20 variables and 3051 rows. Both datasets share the same variables of subgroup and of timestamp. I expect that there will be a correlation between subgroup and approval/disapproval rating. I acquired the dataset using the data(package=.packages(all.available=TRUE)) given in the project pdf.</p>
+</div>
+<div id="installing-packages" class="section level3">
+<h3>Installing Packages</h3>
+<pre class="r"><code>#Installed package for datasets
+#install.packages(&quot;fivethirtyeight&quot;)
+library(fivethirtyeight)
+data(package=.packages(all.available=TRUE))</code></pre>
+<pre><code>## Warning in data(package = .packages(all.available = TRUE)): datasets have been
+## moved from package &#39;base&#39; to package &#39;datasets&#39;</code></pre>
+<pre><code>## Warning in data(package = .packages(all.available = TRUE)): datasets have been
+## moved from package &#39;stats&#39; to package &#39;datasets&#39;</code></pre>
+<pre class="r"><code>#Reading datasets
+data(trump_approval_trend)
+data(trump_approval_poll)</code></pre>
+<pre class="r"><code>#install.packages(&quot;tidyverse&quot;)
+library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.2.1     ✓ purrr   0.3.3
+## ✓ tibble  2.1.3     ✓ dplyr   0.8.4
+## ✓ tidyr   1.0.2     ✓ stringr 1.4.0
+## ✓ readr   1.3.1     ✓ forcats 0.4.0</code></pre>
+<pre><code>## ── Conflicts ───────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+</div>
+<div id="tidying-and-reshaping-trump_approval_trend-dataset" class="section level3">
+<h3>Tidying and Reshaping trump_approval_trend Dataset</h3>
+<p>For trump_approval_trend, I created new columns and put the observations within those columnds in descending order to help tidy and reshape the datasets.</p>
+<pre class="r"><code>#install.packages(&quot;tidyverse&quot;)
+library(tidyverse)
+#install.packages(&quot;dplyr&quot;)
+library(dplyr)
+
+#To Create New Column called &quot;approval type&quot;
+trump_trend_1&lt;-trump_approval_trend%&gt;%pivot_longer(cols=c(&quot;approve_estimate&quot;,&quot;approve_high&quot;,&quot;approve_low&quot;),names_to=&quot;approval type&quot;,values_to=&quot;approval ratings&quot;)
+trump_trend_1</code></pre>
+<pre><code>## # A tibble: 5,112 x 8
+##    subgroup modeldate  disapprove_esti… disapprove_high disapprove_low
+##    &lt;fct&gt;    &lt;date&gt;                &lt;dbl&gt;           &lt;dbl&gt;          &lt;dbl&gt;
+##  1 Voters   2018-08-13             52.0            55.7           48.4
+##  2 Voters   2018-08-13             52.0            55.7           48.4
+##  3 Voters   2018-08-13             52.0            55.7           48.4
+##  4 Adults   2018-08-13             52.9            57.1           48.8
+##  5 Adults   2018-08-13             52.9            57.1           48.8
+##  6 Adults   2018-08-13             52.9            57.1           48.8
+##  7 All pol… 2018-08-13             52.5            56.5           48.5
+##  8 All pol… 2018-08-13             52.5            56.5           48.5
+##  9 All pol… 2018-08-13             52.5            56.5           48.5
+## 10 Voters   2018-08-12             52.1            55.7           48.5
+## # … with 5,102 more rows, and 3 more variables: timestamp &lt;dttm&gt;, `approval
+## #   type` &lt;chr&gt;, `approval ratings` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#To Create New Column called &quot;disapproval type&quot;
+trump_trend_2&lt;-trump_trend_1%&gt;%select(-modeldate)%&gt;%pivot_longer(c(&quot;disapprove_estimate&quot;,&quot;disapprove_high&quot;,&quot;disapprove_low&quot;),names_to=&quot;disapproval type&quot;,values_to=&quot;disapproval ratings&quot;)
+trump_trend_2</code></pre>
+<pre><code>## # A tibble: 15,336 x 6
+##    subgroup timestamp           `approval type` `approval ratin…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_estima…             43.7
+##  2 Voters   2018-08-13 14:07:18 approve_estima…             43.7
+##  3 Voters   2018-08-13 14:07:18 approve_estima…             43.7
+##  4 Voters   2018-08-13 14:07:18 approve_high                47.9
+##  5 Voters   2018-08-13 14:07:18 approve_high                47.9
+##  6 Voters   2018-08-13 14:07:18 approve_high                47.9
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Adults   2018-08-13 14:07:00 approve_estima…             40.8
+## # … with 15,326 more rows, and 2 more variables: `disapproval type` &lt;chr&gt;,
+## #   `disapproval ratings` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#To Arrange Columns in Descending Order
+trump_trend_3&lt;-trump_trend_2%&gt;%arrange(desc(`approval type`))%&gt;%arrange(desc(`disapproval type`))%&gt;%arrange(desc(subgroup))
+trump_trend_3</code></pre>
+<pre><code>## # A tibble: 15,336 x 6
+##    subgroup timestamp           `approval type` `approval ratin…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 10:50:20 approve_low                 39.3
+##  3 Voters   2018-08-13 10:50:38 approve_low                 39.3
+##  4 Voters   2018-08-10 16:24:31 approve_low                 39.3
+##  5 Voters   2018-08-09 16:49:16 approve_low                 39.2
+##  6 Voters   2018-08-08 17:41:11 approve_low                 38.9
+##  7 Voters   2018-08-07 19:01:12 approve_low                 38.8
+##  8 Voters   2018-08-06 13:21:17 approve_low                 38.7
+##  9 Voters   2018-08-06 10:11:15 approve_low                 38.7
+## 10 Voters   2018-08-06 10:11:32 approve_low                 38.7
+## # … with 15,326 more rows, and 2 more variables: `disapproval type` &lt;chr&gt;,
+## #   `disapproval ratings` &lt;dbl&gt;</code></pre>
+</div>
+<div id="tidying-and-reshaping-trump_approval_poll-dataset" class="section level3">
+<h3>Tidying and Reshaping trump_approval_poll Dataset</h3>
+<p>For trump_approval_poll, I made the already tidy dataset untidy just as the instructions said and then tidy that dataset. I then removed the unwanted variables to help make the dataset more organized.</p>
+<pre class="r"><code>#install.packages(&quot;tidyverse&quot;)
+library(tidyverse)
+#install.packages(&quot;dplyr&quot;)
+library(dplyr)
+
+#To Untidy the Already Tidy Dataset
+trump_poll_1&lt;-trump_approval_poll%&gt;%pivot_wider(names_from=&quot;pollster&quot;,values_from=&quot;grade&quot;)
+trump_poll_1</code></pre>
+<pre><code>## # A tibble: 4,929 x 62
+##    subgroup start_date end_date   sample_size population weight approve
+##    &lt;fct&gt;    &lt;date&gt;     &lt;date&gt;           &lt;int&gt; &lt;fct&gt;       &lt;dbl&gt;   &lt;dbl&gt;
+##  1 All pol… 2017-01-20 2017-01-22        1992 rv          0.946    46  
+##  2 All pol… 2017-01-20 2017-01-22        1500 a           0.245    45  
+##  3 All pol… 2017-01-21 2017-01-23        1500 a           0.227    45  
+##  4 All pol… 2017-01-20 2017-01-24        1632 a           0.224    42.1
+##  5 All pol… 2017-01-22 2017-01-24        1500 lv          0.220    57  
+##  6 All pol… 2017-01-21 2017-01-25        1651 a           0.210    42.3
+##  7 All pol… 2017-01-20 2017-01-25        1190 rv          1.64     36  
+##  8 All pol… 2017-01-22 2017-01-24        1500 a           0.212    46  
+##  9 All pol… 2017-01-23 2017-01-25        1500 a           0.200    46  
+## 10 All pol… 2017-01-22 2017-01-26        1678 a           0.199    42.6
+## # … with 4,919 more rows, and 55 more variables: disapprove &lt;dbl&gt;,
+## #   adjusted_approve &lt;dbl&gt;, adjusted_disapprove &lt;dbl&gt;, multiversions &lt;lgl&gt;,
+## #   tracking &lt;lgl&gt;, url &lt;fct&gt;, poll_id &lt;int&gt;, question_id &lt;int&gt;,
+## #   created_date &lt;date&gt;, timestamp &lt;dttm&gt;, `Morning Consult` &lt;ord&gt;,
+## #   Gallup &lt;ord&gt;, Ipsos &lt;ord&gt;, `Rasmussen Reports/Pulse Opinion
+## #   Research` &lt;ord&gt;, `Quinnipiac University` &lt;ord&gt;, `Public Policy
+## #   Polling` &lt;ord&gt;, YouGov &lt;ord&gt;, SurveyMonkey &lt;ord&gt;, `IBD/TIPP` &lt;ord&gt;,
+## #   `CNN/Opinion Research Corp.` &lt;ord&gt;, `CBS News` &lt;ord&gt;, `Zogby Interactive/JZ
+## #   Analytics` &lt;ord&gt;, `McLaughlin &amp; Associates` &lt;ord&gt;, `Emerson College` &lt;ord&gt;,
+## #   `Pew Research Center` &lt;ord&gt;, `Harris Interactive` &lt;ord&gt;, `Fox News` &lt;ord&gt;,
+## #   `Marist College` &lt;ord&gt;, `American Research Group` &lt;ord&gt;, `NBC News/Wall
+## #   Street Journal` &lt;ord&gt;, `Suffolk University` &lt;ord&gt;, `Monmouth
+## #   University` &lt;ord&gt;, `Garin-Hart-Yang/Global Strategy Group` &lt;ord&gt;, `Saint
+## #   Leo University` &lt;ord&gt;, `Kaiser Family Foundation` &lt;ord&gt;, icitizen &lt;ord&gt;,
+## #   `AP-NORC` &lt;ord&gt;, `Hart Research/Public Opinion Strategies` &lt;ord&gt;, `ABC
+## #   News/Washington Post` &lt;ord&gt;, `USC Dornsife/LA Times` &lt;ord&gt;, `Gravis
+## #   Marketing` &lt;ord&gt;, `Greenberg Quinlan Rosner` &lt;ord&gt;, `Selzer &amp;
+## #   Company` &lt;ord&gt;, SurveyUSA &lt;ord&gt;, `CNN/SSRS` &lt;ord&gt;, `Lake Research
+## #   Partners/The Tarrance Group` &lt;ord&gt;, `Opinion Savvy` &lt;ord&gt;, Lucid &lt;ord&gt;,
+## #   `Cards Against Humanity/Survey Sampling International` &lt;ord&gt;, `Public
+## #   Religion Research Institute` &lt;ord&gt;, `America First Policies` &lt;ord&gt;,
+## #   `Tarrance Group` &lt;ord&gt;, `Global Strategy Group/GBA Strategies` &lt;ord&gt;,
+## #   `Public Opinion Strategies` &lt;ord&gt;, `The Washington Post` &lt;ord&gt;</code></pre>
+<pre class="r"><code>#To Tidy the Dataset
+trump_poll_2&lt;-trump_poll_1%&gt;%pivot_longer(cols=c(&quot;Morning Consult&quot;,&quot;Gallup&quot;,&quot;Ipsos&quot;,&quot;Rasmussen Reports/Pulse Opinion Research&quot;,&quot;Quinnipiac University&quot;,&quot;Public Policy Polling&quot;,&quot;YouGov&quot;,&quot;SurveyMonkey&quot;,&quot;IBD/TIPP&quot;,&quot;CNN/Opinion Research Corp.&quot;,&quot;CBS News&quot;,&quot;Zogby Interactive/JZ Analytics&quot;,&quot;McLaughlin &amp; Associates&quot;,&quot;Emerson College&quot;,&quot;Pew Research Center&quot;,&quot;Harris Interactive&quot;,&quot;Fox News&quot;,&quot;Marist College&quot;,&quot;American Research Group&quot;,&quot;NBC News/Wall Street Journal&quot;,&quot;Suffolk University&quot;,&quot;Monmouth University&quot;,&quot;Garin-Hart-Yang/Global Strategy Group&quot;,&quot;Saint Leo University&quot;,&quot;Kaiser Family Foundation&quot;,&quot;icitizen&quot;,&quot;AP-NORC&quot;,&quot;Hart Research/Public Opinion Strategies&quot;,&quot;ABC News/Washington Post&quot;,&quot;USC Dornsife/LA Times&quot;,&quot;Gravis Marketing&quot;,&quot;Greenberg Quinlan Rosner&quot;,&quot;Selzer &amp; Company&quot;,&quot;SurveyUSA&quot;,&quot;CNN/SSRS&quot;,&quot;Lake Research Partners/The Tarrance Group&quot;,&quot;Opinion Savvy&quot;,&quot;Lucid&quot;,&quot;Cards Against Humanity/Survey Sampling International&quot;,&quot;Public Religion Research Institute&quot;,&quot;America First Policies&quot;,&quot;Tarrance Group&quot;,&quot;Global Strategy Group/GBA Strategies&quot;,&quot;Public Opinion Strategies&quot;,&quot;The Washington Post&quot;),names_to=&quot;pollster&quot;,values_to=&quot;grade&quot;)
+trump_poll_2</code></pre>
+<pre><code>## # A tibble: 221,805 x 19
+##    subgroup start_date end_date   sample_size population weight approve
+##    &lt;fct&gt;    &lt;date&gt;     &lt;date&gt;           &lt;int&gt; &lt;fct&gt;       &lt;dbl&gt;   &lt;dbl&gt;
+##  1 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+##  2 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+##  3 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+##  4 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+##  5 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+##  6 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+##  7 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+##  8 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+##  9 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+## 10 All pol… 2017-01-20 2017-01-22        1992 rv          0.946      46
+## # … with 221,795 more rows, and 12 more variables: disapprove &lt;dbl&gt;,
+## #   adjusted_approve &lt;dbl&gt;, adjusted_disapprove &lt;dbl&gt;, multiversions &lt;lgl&gt;,
+## #   tracking &lt;lgl&gt;, url &lt;fct&gt;, poll_id &lt;int&gt;, question_id &lt;int&gt;,
+## #   created_date &lt;date&gt;, timestamp &lt;dttm&gt;, pollster &lt;chr&gt;, grade &lt;ord&gt;</code></pre>
+<pre class="r"><code>#To Remove Unwanted Variables
+trump_poll_3&lt;-trump_poll_2%&gt;%select(-url,-start_date,-end_date,-poll_id,-question_id,-multiversions,-tracking,-weight,-pollster,-grade,-sample_size,-population,-created_date,-adjusted_approve,-adjusted_disapprove)
+trump_poll_3</code></pre>
+<pre><code>## # A tibble: 221,805 x 4
+##    subgroup  approve disapprove timestamp          
+##    &lt;fct&gt;       &lt;dbl&gt;      &lt;dbl&gt; &lt;dttm&gt;             
+##  1 All polls      46         37 2018-08-13 14:06:42
+##  2 All polls      46         37 2018-08-13 14:06:42
+##  3 All polls      46         37 2018-08-13 14:06:42
+##  4 All polls      46         37 2018-08-13 14:06:42
+##  5 All polls      46         37 2018-08-13 14:06:42
+##  6 All polls      46         37 2018-08-13 14:06:42
+##  7 All polls      46         37 2018-08-13 14:06:42
+##  8 All polls      46         37 2018-08-13 14:06:42
+##  9 All polls      46         37 2018-08-13 14:06:42
+## 10 All polls      46         37 2018-08-13 14:06:42
+## # … with 221,795 more rows</code></pre>
+</div>
+<div id="joining-2-separate-data-sources-into-a-single-dataset" class="section level3">
+<h3>Joining 2+ separate data sources into a single dataset</h3>
+<p>I performed all the joins here in order to figure out which ones were better suited. I determined that the inner_join would be the best because it shows the intersection of what was matched and was in common with both tables. I do not think that any case in each dataset was dropped.</p>
+<pre class="r"><code>#For joining, I dropped many variables from trump_approval_poll because I thought that there were too many variables that were not needed.
+
+#Joining data sources into datasets:
+
+#Left_join shows all rows from left, even without any matches in the right
+left_join&lt;-trump_approval_poll%&gt;%left_join(trump_approval_trend, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+left_join</code></pre>
+<pre><code>## # A tibble: 4,929 x 26
+##    subgroup start_date end_date   pollster grade sample_size population weight
+##    &lt;fct&gt;    &lt;date&gt;     &lt;date&gt;     &lt;fct&gt;    &lt;ord&gt;       &lt;int&gt; &lt;fct&gt;       &lt;dbl&gt;
+##  1 All pol… 2017-01-20 2017-01-22 Morning… B-           1992 rv          0.946
+##  2 All pol… 2017-01-20 2017-01-22 Gallup   B            1500 a           0.245
+##  3 All pol… 2017-01-21 2017-01-23 Gallup   B            1500 a           0.227
+##  4 All pol… 2017-01-20 2017-01-24 Ipsos    B+           1632 a           0.224
+##  5 All pol… 2017-01-22 2017-01-24 Rasmuss… C+           1500 lv          0.220
+##  6 All pol… 2017-01-21 2017-01-25 Ipsos    B+           1651 a           0.210
+##  7 All pol… 2017-01-20 2017-01-25 Quinnip… A-           1190 rv          1.64 
+##  8 All pol… 2017-01-22 2017-01-24 Gallup   B            1500 a           0.212
+##  9 All pol… 2017-01-23 2017-01-25 Gallup   B            1500 a           0.200
+## 10 All pol… 2017-01-22 2017-01-26 Ipsos    B+           1678 a           0.199
+## # … with 4,919 more rows, and 18 more variables: approve &lt;dbl&gt;,
+## #   disapprove &lt;dbl&gt;, adjusted_approve &lt;dbl&gt;, adjusted_disapprove &lt;dbl&gt;,
+## #   multiversions &lt;lgl&gt;, tracking &lt;lgl&gt;, url &lt;fct&gt;, poll_id &lt;int&gt;,
+## #   question_id &lt;int&gt;, created_date &lt;date&gt;, timestamp &lt;dttm&gt;, modeldate &lt;date&gt;,
+## #   approve_estimate &lt;dbl&gt;, approve_high &lt;dbl&gt;, approve_low &lt;dbl&gt;,
+## #   disapprove_estimate &lt;dbl&gt;, disapprove_high &lt;dbl&gt;, disapprove_low &lt;dbl&gt;</code></pre>
+<pre class="r"><code>left_join_2&lt;-trump_poll_3%&gt;%left_join(trump_trend_3, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+left_join_2</code></pre>
+<pre><code>## # A tibble: 1,996,245 x 8
+##    subgroup approve disapprove timestamp           `approval type`
+##    &lt;fct&gt;      &lt;dbl&gt;      &lt;dbl&gt; &lt;dttm&gt;              &lt;chr&gt;          
+##  1 All pol…      46         37 2018-08-13 14:06:42 approve_low    
+##  2 All pol…      46         37 2018-08-13 14:06:42 approve_high   
+##  3 All pol…      46         37 2018-08-13 14:06:42 approve_estima…
+##  4 All pol…      46         37 2018-08-13 14:06:42 approve_low    
+##  5 All pol…      46         37 2018-08-13 14:06:42 approve_high   
+##  6 All pol…      46         37 2018-08-13 14:06:42 approve_estima…
+##  7 All pol…      46         37 2018-08-13 14:06:42 approve_low    
+##  8 All pol…      46         37 2018-08-13 14:06:42 approve_high   
+##  9 All pol…      46         37 2018-08-13 14:06:42 approve_estima…
+## 10 All pol…      46         37 2018-08-13 14:06:42 approve_low    
+## # … with 1,996,235 more rows, and 3 more variables: `approval ratings` &lt;dbl&gt;,
+## #   `disapproval type` &lt;chr&gt;, `disapproval ratings` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Right_join shows all rows from right, even without any matches in the left
+right_join&lt;-trump_approval_poll%&gt;%right_join(trump_approval_trend, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+right_join</code></pre>
+<pre><code>## # A tibble: 6,630 x 26
+##    subgroup start_date end_date   pollster grade sample_size population weight
+##    &lt;fct&gt;    &lt;date&gt;     &lt;date&gt;     &lt;fct&gt;    &lt;ord&gt;       &lt;int&gt; &lt;fct&gt;       &lt;dbl&gt;
+##  1 Voters   2017-01-20 2017-01-22 Morning… B-           1992 rv          0.946
+##  2 Voters   2017-01-20 2017-01-24 Ipsos    B+            509 lv          0.128
+##  3 Voters   2017-01-22 2017-01-24 Rasmuss… C+           1500 lv          0.220
+##  4 Voters   2017-01-20 2017-01-25 Quinnip… A-           1190 rv          1.64 
+##  5 Voters   2017-01-21 2017-01-25 Ipsos    B+            516 lv          0.124
+##  6 Voters   2017-01-23 2017-01-25 YouGov   B            2312 rv          1.53 
+##  7 Voters   2017-01-23 2017-01-24 Public … B            1043 rv          1.17 
+##  8 Voters   2017-01-23 2017-01-25 Rasmuss… C+           1500 lv          0.205
+##  9 Voters   2017-01-22 2017-01-26 Ipsos    B+            552 lv          0.127
+## 10 Voters   2017-01-24 2017-01-26 Rasmuss… C+           1500 lv          0.192
+## # … with 6,620 more rows, and 18 more variables: approve &lt;dbl&gt;,
+## #   disapprove &lt;dbl&gt;, adjusted_approve &lt;dbl&gt;, adjusted_disapprove &lt;dbl&gt;,
+## #   multiversions &lt;lgl&gt;, tracking &lt;lgl&gt;, url &lt;fct&gt;, poll_id &lt;int&gt;,
+## #   question_id &lt;int&gt;, created_date &lt;date&gt;, timestamp &lt;dttm&gt;, modeldate &lt;date&gt;,
+## #   approve_estimate &lt;dbl&gt;, approve_high &lt;dbl&gt;, approve_low &lt;dbl&gt;,
+## #   disapprove_estimate &lt;dbl&gt;, disapprove_high &lt;dbl&gt;, disapprove_low &lt;dbl&gt;</code></pre>
+<pre class="r"><code>right_join_2&lt;-trump_poll_3%&gt;%right_join(trump_trend_3, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+right_join_2</code></pre>
+<pre><code>## # A tibble: 2,011,554 x 8
+##    subgroup approve disapprove timestamp           `approval type`
+##    &lt;fct&gt;      &lt;dbl&gt;      &lt;dbl&gt; &lt;dttm&gt;              &lt;chr&gt;          
+##  1 Voters        46         37 2018-08-13 14:07:18 approve_low    
+##  2 Voters        46         37 2018-08-13 14:07:18 approve_low    
+##  3 Voters        46         37 2018-08-13 14:07:18 approve_low    
+##  4 Voters        46         37 2018-08-13 14:07:18 approve_low    
+##  5 Voters        46         37 2018-08-13 14:07:18 approve_low    
+##  6 Voters        46         37 2018-08-13 14:07:18 approve_low    
+##  7 Voters        46         37 2018-08-13 14:07:18 approve_low    
+##  8 Voters        46         37 2018-08-13 14:07:18 approve_low    
+##  9 Voters        46         37 2018-08-13 14:07:18 approve_low    
+## 10 Voters        46         37 2018-08-13 14:07:18 approve_low    
+## # … with 2,011,544 more rows, and 3 more variables: `approval ratings` &lt;dbl&gt;,
+## #   `disapproval type` &lt;chr&gt;, `disapproval ratings` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Note to self: For both full_join and inner_join: All row information is preserved. Order doesn&#39;t matter
+
+#Inner_join shows rows when there is match in both tables. It shows intersection of what is in common
+inner_join&lt;-trump_approval_trend%&gt;%inner_join(trump_approval_poll, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+inner_join</code></pre>
+<pre><code>## # A tibble: 4,929 x 26
+##    subgroup modeldate  approve_estimate approve_high approve_low
+##    &lt;fct&gt;    &lt;date&gt;                &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+##  1 Voters   2018-08-13             43.7         47.9        39.4
+##  2 Voters   2018-08-13             43.7         47.9        39.4
+##  3 Voters   2018-08-13             43.7         47.9        39.4
+##  4 Voters   2018-08-13             43.7         47.9        39.4
+##  5 Voters   2018-08-13             43.7         47.9        39.4
+##  6 Voters   2018-08-13             43.7         47.9        39.4
+##  7 Voters   2018-08-13             43.7         47.9        39.4
+##  8 Voters   2018-08-13             43.7         47.9        39.4
+##  9 Voters   2018-08-13             43.7         47.9        39.4
+## 10 Voters   2018-08-13             43.7         47.9        39.4
+## # … with 4,919 more rows, and 21 more variables: disapprove_estimate &lt;dbl&gt;,
+## #   disapprove_high &lt;dbl&gt;, disapprove_low &lt;dbl&gt;, timestamp &lt;dttm&gt;,
+## #   start_date &lt;date&gt;, end_date &lt;date&gt;, pollster &lt;fct&gt;, grade &lt;ord&gt;,
+## #   sample_size &lt;int&gt;, population &lt;fct&gt;, weight &lt;dbl&gt;, approve &lt;dbl&gt;,
+## #   disapprove &lt;dbl&gt;, adjusted_approve &lt;dbl&gt;, adjusted_disapprove &lt;dbl&gt;,
+## #   multiversions &lt;lgl&gt;, tracking &lt;lgl&gt;, url &lt;fct&gt;, poll_id &lt;int&gt;,
+## #   question_id &lt;int&gt;, created_date &lt;date&gt;</code></pre>
+<pre class="r"><code>inner_join_2&lt;-trump_trend_3%&gt;%inner_join(trump_poll_3, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+inner_join_2</code></pre>
+<pre><code>## # A tibble: 1,996,245 x 8
+##    subgroup timestamp           `approval type` `approval ratin…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 1,996,235 more rows, and 4 more variables: `disapproval type` &lt;chr&gt;,
+## #   `disapproval ratings` &lt;dbl&gt;, approve &lt;dbl&gt;, disapprove &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Full_join combines results of both outer left and right
+full_join&lt;-trump_approval_trend%&gt;%full_join(trump_approval_poll, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+full_join</code></pre>
+<pre><code>## # A tibble: 6,630 x 26
+##    subgroup modeldate  approve_estimate approve_high approve_low
+##    &lt;fct&gt;    &lt;date&gt;                &lt;dbl&gt;        &lt;dbl&gt;       &lt;dbl&gt;
+##  1 Voters   2018-08-13             43.7         47.9        39.4
+##  2 Voters   2018-08-13             43.7         47.9        39.4
+##  3 Voters   2018-08-13             43.7         47.9        39.4
+##  4 Voters   2018-08-13             43.7         47.9        39.4
+##  5 Voters   2018-08-13             43.7         47.9        39.4
+##  6 Voters   2018-08-13             43.7         47.9        39.4
+##  7 Voters   2018-08-13             43.7         47.9        39.4
+##  8 Voters   2018-08-13             43.7         47.9        39.4
+##  9 Voters   2018-08-13             43.7         47.9        39.4
+## 10 Voters   2018-08-13             43.7         47.9        39.4
+## # … with 6,620 more rows, and 21 more variables: disapprove_estimate &lt;dbl&gt;,
+## #   disapprove_high &lt;dbl&gt;, disapprove_low &lt;dbl&gt;, timestamp &lt;dttm&gt;,
+## #   start_date &lt;date&gt;, end_date &lt;date&gt;, pollster &lt;fct&gt;, grade &lt;ord&gt;,
+## #   sample_size &lt;int&gt;, population &lt;fct&gt;, weight &lt;dbl&gt;, approve &lt;dbl&gt;,
+## #   disapprove &lt;dbl&gt;, adjusted_approve &lt;dbl&gt;, adjusted_disapprove &lt;dbl&gt;,
+## #   multiversions &lt;lgl&gt;, tracking &lt;lgl&gt;, url &lt;fct&gt;, poll_id &lt;int&gt;,
+## #   question_id &lt;int&gt;, created_date &lt;date&gt;</code></pre>
+<pre class="r"><code>full_join_2&lt;-trump_trend_3%&gt;%full_join(trump_poll_3, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+full_join_2</code></pre>
+<pre><code>## # A tibble: 2,011,554 x 8
+##    subgroup timestamp           `approval type` `approval ratin…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 2,011,544 more rows, and 4 more variables: `disapproval type` &lt;chr&gt;,
+## #   `disapproval ratings` &lt;dbl&gt;, approve &lt;dbl&gt;, disapprove &lt;dbl&gt;</code></pre>
+</div>
+<div id="create-summary-statistics" class="section level3">
+<h3>Create Summary Statistics</h3>
+<p>I used all 6 core dplyr functions (select, filter, arrange, mutate, summarize, group_by) in order to learn more about my dataset.</p>
+<pre class="r"><code>#install.packages(&quot;tidyverse&quot;)
+library(tidyverse)
+#install.packages(&quot;dplyr&quot;)
+library(dplyr)
+
+inner_join_2&lt;-trump_trend_3%&gt;%inner_join(trump_poll_3, by = c(&quot;subgroup&quot;, &quot;timestamp&quot;))
+inner_join_2</code></pre>
+<pre><code>## # A tibble: 1,996,245 x 8
+##    subgroup timestamp           `approval type` `approval ratin…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 1,996,235 more rows, and 4 more variables: `disapproval type` &lt;chr&gt;,
+## #   `disapproval ratings` &lt;dbl&gt;, approve &lt;dbl&gt;, disapprove &lt;dbl&gt;</code></pre>
+<pre class="r"><code>new&lt;-inner_join_2
+new</code></pre>
+<pre><code>## # A tibble: 1,996,245 x 8
+##    subgroup timestamp           `approval type` `approval ratin…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 1,996,235 more rows, and 4 more variables: `disapproval type` &lt;chr&gt;,
+## #   `disapproval ratings` &lt;dbl&gt;, approve &lt;dbl&gt;, disapprove &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Using select on Dataset
+new1&lt;-new%&gt;%select(subgroup,timestamp,`approval type`,`approval ratings`,approve,`disapproval type`,`disapproval ratings`,disapprove)
+new1</code></pre>
+<pre><code>## # A tibble: 1,996,245 x 8
+##    subgroup timestamp           `approval type` `approval ratin… approve
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;   &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+## # … with 1,996,235 more rows, and 3 more variables: `disapproval type` &lt;chr&gt;,
+## #   `disapproval ratings` &lt;dbl&gt;, disapprove &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Using filter and select on Dataset
+new2&lt;-new1%&gt;%filter(subgroup==&quot;Voters&quot;)%&gt;%select(subgroup,timestamp,`approval type`,&quot;estimated approval percentage&quot;= `approval ratings`,&quot;actual approval percentage&quot;= approve,`disapproval type`,&quot;estimated disapproval percentage&quot;= `disapproval ratings`, &quot;actual disapproval percentage&quot;=disapprove)
+new2</code></pre>
+<pre><code>## # A tibble: 584,010 x 8
+##    subgroup timestamp           `approval type` `estimated appr…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 584,000 more rows, and 4 more variables: `actual approval
+## #   percentage` &lt;dbl&gt;, `disapproval type` &lt;chr&gt;, `estimated disapproval
+## #   percentage` &lt;dbl&gt;, `actual disapproval percentage` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Using arrange on Dataset
+new3&lt;-new2%&gt;%arrange(desc(`actual approval percentage`,`actual disapproval percentage`))
+new3</code></pre>
+<pre><code>## # A tibble: 584,010 x 8
+##    subgroup timestamp           `approval type` `estimated appr…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 584,000 more rows, and 4 more variables: `actual approval
+## #   percentage` &lt;dbl&gt;, `disapproval type` &lt;chr&gt;, `estimated disapproval
+## #   percentage` &lt;dbl&gt;, `actual disapproval percentage` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Using group_by and summarize on dataset
+new4&lt;-new3%&gt;%group_by(subgroup)%&gt;%summarize(avr_est_approv_perc=mean(`estimated approval percentage`,na.rm=T),avr_est_disapprov_perc=mean(`estimated disapproval percentage`,na.rm=T), avr_actual_approv_perc=mean(`actual approval percentage`,na.rm=T),avr_actual_disapprov_perc=mean(`actual disapproval percentage`,na.rm=T))
+new4</code></pre>
+<pre><code>## # A tibble: 1 x 5
+##   subgroup avr_est_approv_p… avr_est_disappro… avr_actual_appr… avr_actual_disa…
+##   &lt;fct&gt;                &lt;dbl&gt;             &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 Voters                43.7              52.0             43.4             53.6</code></pre>
+<pre class="r"><code>#Using mutate on dataset
+new5&lt;-new1%&gt;%mutate(types_definition=recode(`approval type`,approve_estimate=&quot;exact estimate of percentage&quot;, approve_high=&quot;higher bound of percentage&quot;, approve_low=&quot;lower bound of percentage&quot;))
+new5</code></pre>
+<pre><code>## # A tibble: 1,996,245 x 9
+##    subgroup timestamp           `approval type` `approval ratin… approve
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;   &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4      46
+## # … with 1,996,235 more rows, and 4 more variables: `disapproval type` &lt;chr&gt;,
+## #   `disapproval ratings` &lt;dbl&gt;, disapprove &lt;dbl&gt;, types_definition &lt;chr&gt;</code></pre>
+<pre class="r"><code>#Using all of them except summarize on dataset. Summarize is above with group_by 
+new6&lt;-new%&gt;%filter(subgroup==&quot;Voters&quot;)%&gt;%select(subgroup,timestamp,`approval type`,&quot;estimated approval percentage&quot;= `approval ratings`,&quot;actual approval percentage&quot;= approve,`disapproval type`,&quot;estimated disapproval percentage&quot;= `disapproval ratings`, &quot;actual disapproval percentage&quot;=disapprove)%&gt;%mutate(types_definition=recode(`approval type`,approve_estimate=&quot;exact estimate of percentage&quot;, approve_high=&quot;higher bound of percentage&quot;, approve_low=&quot;lower bound of percentage&quot;))%&gt;%arrange(desc(`actual approval percentage`,`actual disapproval percentage`))
+new6</code></pre>
+<pre><code>## # A tibble: 584,010 x 9
+##    subgroup timestamp           `approval type` `estimated appr…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 584,000 more rows, and 5 more variables: `actual approval
+## #   percentage` &lt;dbl&gt;, `disapproval type` &lt;chr&gt;, `estimated disapproval
+## #   percentage` &lt;dbl&gt;, `actual disapproval percentage` &lt;dbl&gt;,
+## #   types_definition &lt;chr&gt;</code></pre>
+<pre class="r"><code>new6a&lt;-inner_join_2%&gt;%filter(subgroup==&quot;Voters&quot;)%&gt;%select(subgroup,timestamp,`approval type`,&quot;estimated approval percentage&quot;= `approval ratings`,&quot;actual approval percentage&quot;= approve,`disapproval type`,&quot;estimated disapproval percentage&quot;= `disapproval ratings`, &quot;actual disapproval percentage&quot;=disapprove)%&gt;%mutate(types_definition=recode(`approval type`,approve_estimate=&quot;exact estimate of percentage&quot;, approve_high=&quot;higher bound of percentage&quot;, approve_low=&quot;lower bound of percentage&quot;))%&gt;%arrange(desc(`actual approval percentage`,`actual disapproval percentage`))
+new6a</code></pre>
+<pre><code>## # A tibble: 584,010 x 9
+##    subgroup timestamp           `approval type` `estimated appr…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 584,000 more rows, and 5 more variables: `actual approval
+## #   percentage` &lt;dbl&gt;, `disapproval type` &lt;chr&gt;, `estimated disapproval
+## #   percentage` &lt;dbl&gt;, `actual disapproval percentage` &lt;dbl&gt;,
+## #   types_definition &lt;chr&gt;</code></pre>
+<pre class="r"><code>#I did the 6 core dplyr functions separately first before combining all of them because it was easier for me to organize it and keep track this way.
+
+#Using select on dataset
+new7&lt;-new1%&gt;%select(subgroup,timestamp,`approval type`,&quot;estimated approval percentage&quot;= `approval ratings`,&quot;actual approval percentage&quot;= approve,`disapproval type`,&quot;estimated disapproval percentage&quot;= `disapproval ratings`, &quot;actual disapproval percentage&quot;=disapprove)
+new7</code></pre>
+<pre><code>## # A tibble: 1,996,245 x 8
+##    subgroup timestamp           `approval type` `estimated appr…
+##    &lt;fct&gt;    &lt;dttm&gt;              &lt;chr&gt;                      &lt;dbl&gt;
+##  1 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  2 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  3 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  4 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  5 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  6 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  7 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  8 Voters   2018-08-13 14:07:18 approve_low                 39.4
+##  9 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## 10 Voters   2018-08-13 14:07:18 approve_low                 39.4
+## # … with 1,996,235 more rows, and 4 more variables: `actual approval
+## #   percentage` &lt;dbl&gt;, `disapproval type` &lt;chr&gt;, `estimated disapproval
+## #   percentage` &lt;dbl&gt;, `actual disapproval percentage` &lt;dbl&gt;</code></pre>
+<p>###Create Summary Statistics (Continued)</p>
+<p>I created summary statistics for both after grouping and overall. I found mean, sd, n, and se. I used other summary statistics such as n_distinct, summarize_at, summarize_if, group_by, and cor for the correlation matrix. For instance, I learned that the mean estimated approval percentage of voters for President Trump is approximately 43.66%, and that the mean estimated disapproval percentage of voters for President Trump is approximately 52.04%.</p>
+<pre class="r"><code>#Using group_by subgroup and timestamp to find mean, sd, n, and se for estimated approval and disapproval
+sum_stat_1&lt;-new6%&gt;%group_by(subgroup,timestamp)%&gt;%summarize(mean_est_approv_perc=mean(`estimated approval percentage`,na.rm=T),sd_est_approv_perc=sd(`estimated approval percentage`,na.rm=T),n=n(),se_est_approv_perc=sd_est_approv_perc/sqrt(n),mean_est_disapprov_perc=mean(`estimated disapproval percentage`,na.rm=T),sd_est_disapprov_perc=sd(`estimated disapproval percentage`),n=n(),se_est_disapprov_perc=sd_est_disapprov_perc/sqrt(n))
+sum_stat_1</code></pre>
+<pre><code>## # A tibble: 1 x 9
+## # Groups:   subgroup [1]
+##   subgroup timestamp           mean_est_approv… sd_est_approv_p…      n
+##   &lt;fct&gt;    &lt;dttm&gt;                         &lt;dbl&gt;            &lt;dbl&gt;  &lt;int&gt;
+## 1 Voters   2018-08-13 14:07:18             43.7             3.46 584010
+## # … with 4 more variables: se_est_approv_perc &lt;dbl&gt;,
+## #   mean_est_disapprov_perc &lt;dbl&gt;, sd_est_disapprov_perc &lt;dbl&gt;,
+## #   se_est_disapprov_perc &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Using n_distinct to summarize based on filter by voters
+sum_stat_2&lt;-new6%&gt;%summarize_all(n_distinct)
+sum_stat_2</code></pre>
+<pre><code>## # A tibble: 1 x 9
+##   subgroup timestamp `approval type` `estimated appr… `actual approva…
+##      &lt;int&gt;     &lt;int&gt;           &lt;int&gt;            &lt;int&gt;            &lt;int&gt;
+## 1        1         1               3                3              148
+## # … with 4 more variables: `disapproval type` &lt;int&gt;, `estimated disapproval
+## #   percentage` &lt;int&gt;, `actual disapproval percentage` &lt;int&gt;,
+## #   types_definition &lt;int&gt;</code></pre>
+<pre class="r"><code>#Using summarize_at with vars
+sum_stat_3&lt;-new6%&gt;%select(-`approval type`)%&gt;%summarize_at(vars(timestamp:`estimated approval percentage`),mean,na.rm=T)
+sum_stat_3</code></pre>
+<pre><code>## # A tibble: 1 x 2
+##   timestamp           `estimated approval percentage`
+##   &lt;dttm&gt;                                        &lt;dbl&gt;
+## 1 2018-08-13 14:07:18                            43.7</code></pre>
+<pre class="r"><code>#Using summarize_if and group_by to find minimum and maximum
+sum_stat_4&lt;- new6%&gt;%group_by(subgroup)%&gt;%summarize_if(is.numeric,list(min=min,max=max),na.rm=T)
+sum_stat_4</code></pre>
+<pre><code>## # A tibble: 1 x 9
+##   subgroup `estimated appr… `actual approva… `estimated disa… `actual disappr…
+##   &lt;fct&gt;               &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 Voters               39.4               33             48.4               37
+## # … with 4 more variables: `estimated approval percentage_max` &lt;dbl&gt;, `actual
+## #   approval percentage_max` &lt;dbl&gt;, `estimated disapproval
+## #   percentage_max` &lt;dbl&gt;, `actual disapproval percentage_max` &lt;dbl&gt;</code></pre>
+<pre class="r"><code>#Using summarize_if and group_by to find quantile
+sum_stat_5&lt;-new6%&gt;%group_by(subgroup)%&gt;%summarize_if(is.numeric,list(Q3=quantile),probs=0.75, na.rm=T)
+sum_stat_5</code></pre>
+<pre><code>## # A tibble: 1 x 5
+##   subgroup `estimated appro… `actual approval… `estimated disa… `actual disappr…
+##   &lt;fct&gt;                &lt;dbl&gt;             &lt;dbl&gt;            &lt;dbl&gt;            &lt;dbl&gt;
+## 1 Voters                47.9                46             55.7               56</code></pre>
+<pre class="r"><code>#Using quantile in general
+quantile(new6$`estimated approval percentage`,na.rm=TRUE)</code></pre>
+<pre><code>##       0%      25%      50%      75%     100% 
+## 39.41897 39.41897 43.66196 47.90496 47.90496</code></pre>
+<pre class="r"><code>quantile(new6$`actual approval percentage`,na.rm=TRUE)</code></pre>
+<pre><code>##   0%  25%  50%  75% 100% 
+## 33.0 41.0 43.2 46.0 59.0</code></pre>
+<pre class="r"><code>quantile(new6$`estimated disapproval percentage`,na.rm=TRUE)</code></pre>
+<pre><code>##       0%      25%      50%      75%     100% 
+## 48.40467 48.40467 52.03722 55.66977 55.66977</code></pre>
+<pre class="r"><code>quantile(new6$`actual disapproval percentage`,na.rm=TRUE)</code></pre>
+<pre><code>##   0%  25%  50%  75% 100% 
+## 37.0 51.2 54.0 56.0 62.0</code></pre>
+<pre class="r"><code>#Usng summarize_if and n_distinct
+sum_stat_6&lt;-new6%&gt;%summarize_if(is.character,n_distinct)
+sum_stat_6</code></pre>
+<pre><code>## # A tibble: 1 x 3
+##   `approval type` `disapproval type` types_definition
+##             &lt;int&gt;              &lt;int&gt;            &lt;int&gt;
+## 1               3                  3                3</code></pre>
+<pre class="r"><code>#Using summarize and cor for correlation matrix
+df1&lt;-new6a%&gt;%na.omit%&gt;%select_if(is.numeric)
+cor(df1)</code></pre>
+<pre><code>##                                  estimated approval percentage
+## estimated approval percentage                     1.000000e+00
+## actual approval percentage                        1.951192e-20
+## estimated disapproval percentage                  3.159690e-18
+## actual disapproval percentage                     2.802934e-18
+##                                  actual approval percentage
+## estimated approval percentage                  1.951192e-20
+## actual approval percentage                     1.000000e+00
+## estimated disapproval percentage               1.060157e-17
+## actual disapproval percentage                 -8.096912e-01
+##                                  estimated disapproval percentage
+## estimated approval percentage                        3.159690e-18
+## actual approval percentage                           1.060157e-17
+## estimated disapproval percentage                     1.000000e+00
+## actual disapproval percentage                        5.787731e-19
+##                                  actual disapproval percentage
+## estimated approval percentage                     2.802934e-18
+## actual approval percentage                       -8.096912e-01
+## estimated disapproval percentage                  5.787731e-19
+## actual disapproval percentage                     1.000000e+00</code></pre>
+<pre class="r"><code>view(cor(df1))</code></pre>
+</div>
+<div id="make-visualizations" class="section level3">
+<h3>Make Visualizations</h3>
+<p>I made a correlation heatmap. The correlation heatmap genereally shows no correlation between variables. This may be due to no real correlation or an error made in the code. However, there is a negative correlation of -0.81 for actual disapproval percentage and actual approval percentage. This makes sense because it means that as one of these percentage such as actual disapproval percentage is increasing, the other such as actual approval percentage will decrease and vice versa.</p>
+<pre class="r"><code>#install.packages(&quot;dplyr&quot;)
+library(dplyr)
+#install.packages(&quot;ggplot2&quot;)
+library(ggplot2)
+
+df1&lt;-new6a%&gt;%na.omit%&gt;%select_if(is.numeric)
+cor(df1)</code></pre>
+<pre><code>##                                  estimated approval percentage
+## estimated approval percentage                     1.000000e+00
+## actual approval percentage                        1.951192e-20
+## estimated disapproval percentage                  3.159690e-18
+## actual disapproval percentage                     2.802934e-18
+##                                  actual approval percentage
+## estimated approval percentage                  1.951192e-20
+## actual approval percentage                     1.000000e+00
+## estimated disapproval percentage               1.060157e-17
+## actual disapproval percentage                 -8.096912e-01
+##                                  estimated disapproval percentage
+## estimated approval percentage                        3.159690e-18
+## actual approval percentage                           1.060157e-17
+## estimated disapproval percentage                     1.000000e+00
+## actual disapproval percentage                        5.787731e-19
+##                                  actual disapproval percentage
+## estimated approval percentage                     2.802934e-18
+## actual approval percentage                       -8.096912e-01
+## estimated disapproval percentage                  5.787731e-19
+## actual disapproval percentage                     1.000000e+00</code></pre>
+<pre class="r"><code>#view(cor(df1))
+
+#Make correlation heatmap of numeric variables
+tidycor&lt;-cor(df1)%&gt;%as.data.frame%&gt;%rownames_to_column%&gt;%pivot_longer(-1,names_to=&quot;name&quot;,values_to=&quot;correlation&quot;) 
+head(tidycor)</code></pre>
+<pre><code>## # A tibble: 6 x 3
+##   rowname                       name                             correlation
+##   &lt;chr&gt;                         &lt;chr&gt;                                  &lt;dbl&gt;
+## 1 estimated approval percentage estimated approval percentage       1.00e+ 0
+## 2 estimated approval percentage actual approval percentage          1.95e-20
+## 3 estimated approval percentage estimated disapproval percentage    3.16e-18
+## 4 estimated approval percentage actual disapproval percentage       2.80e-18
+## 5 actual approval percentage    estimated approval percentage       1.95e-20
+## 6 actual approval percentage    actual approval percentage          1.00e+ 0</code></pre>
+<pre class="r"><code>heatmap&lt;-tidycor%&gt;%ggplot(aes(rowname,name,fill=correlation))+geom_tile()+scale_fill_gradient2(low=&quot;red&quot;,mid=&quot;white&quot;,high=&quot;blue&quot;)+geom_text(aes(label=round(correlation,2)),color=&quot;black&quot;,size=4)+theme(axis.text.x=element_text(angle=90,hjust=1))+coord_fixed()
+heatmap</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code>#I tried to change the axis titles but the graph would not work or show up whenever I tried changing my code.</code></pre>
+</div>
+<div id="make-visualizations-continued" class="section level3">
+<h3>Make Visualizations (Continued)</h3>
+<p>I made ggplots to shows some interesting findings from the descriptive statistics from above.</p>
+<p>The sideway bar graph shows that the relationship between subgroups (voters, all polls, and adults) and estimated approval percentage for President Trump by its approval type (approve_estimate, approve_high, approve_low). It shows that there is a higher number of estimated approval percentage for all approval types in voters than in adults and shows how the total number of estimated approval percentages for all approval types are distributed. For all polls, there are more high approval ratings than low approval ratings.</p>
+<pre class="r"><code>#install.packages(&quot;dplyr&quot;)
+library(dplyr)
+#install.packages(&quot;ggplot2&quot;)
+library(ggplot2)
+
+#The ggplot that shows the relations of subgroup vs. estimated approval percentage by its approval type
+ggplot2&lt;-new7%&gt;%ggplot(aes(subgroup,`estimated approval percentage`,color=`approval type`))+geom_bar(stat=&quot;identity&quot;)+coord_flip()+ggtitle(&quot;Subgroup vs. Estimated Approval Percentage by Approval Type&quot;)+scale_x_discrete()
+ggplot2</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+<div id="make-visualizations-continued-1" class="section level3">
+<h3>Make Visualizations (Continued)</h3>
+<p>I made ggplots to shows some interesting findings from the descriptive statistics from above.</p>
+<p>The dot graph shows that the relationship between estimated approval percentage (in percentage) by approval type (approve_estimate, approve_high, and approve_low). It shows it in a more concise way. The highest estimated approval percentage in voters is approximately 48%, according to the graph. The lowest estimated approval percentage is approximately 36.5% for all polls, according to the graph.</p>
+<pre class="r"><code>#install.packages(&quot;dplyr&quot;)
+library(dplyr)
+#install.packages(&quot;ggplot2&quot;)
+library(ggplot2)
+
+#Make ggplots
+ggplot1&lt;-new7%&gt;%ggplot(aes(subgroup,`actual approval percentage`))+geom_bar(stat=&quot;summary&quot;)+geom_errorbar(stat=&quot;summary&quot;)
+ggplot1</code></pre>
+<pre><code>## No summary function supplied, defaulting to `mean_se()
+## No summary function supplied, defaulting to `mean_se()</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<pre class="r"><code>#The ggplot that shows the relations of approval type vs. estimated approval percentage by its subgroup
+ggplot3&lt;-new7%&gt;%ggplot(aes(`approval type`,`estimated approval percentage`))+geom_point(size=3,aes(color=subgroup))+scale_fill_brewer()+ggtitle(&quot;Estimated Approval Percentage vs. Approval Type by Subgroup&quot;)
+ggplot3</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-11-2.png" width="672" /></p>
+</div>
+<div id="k-meanspam-clustering-on-pca" class="section level3">
+<h3>K-means/PAM clustering on PCA</h3>
+<p>I kept getting an error saying that my dataset was too large for me to do k-means/PAM clustering/Gower’s dissimilarity matrix on. As a result, in order to knit, I made all my code into comments. This does mean that I am unable to interpret my components since they would not run.</p>
+<pre class="r"><code>#If it was done with kmeans:
+library(cluster)
+clust_dat&lt;-new7%&gt;%ungroup%&gt;%select_if(is.numeric)
+kmeans1&lt;-clust_dat%&gt;%scale%&gt;%kmeans(3)
+kmeansclust &lt;- clust_dat%&gt;%mutate(cluster=as.factor(kmeans1$cluster))
+plot&lt;-kmeansclust%&gt;%ggplot(aes(`estimated approval percentage`,`estimated disapproval percentage`,color=cluster))+geom_point()
+plot</code></pre>
+<p><img src="/project1_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+</div>
+</div>

@@ -1,0 +1,299 @@
+---
+title: "Project 1"
+author: "SDS 348"
+output:
+  pdf_document: default
+  html_document: default
+showpagemeta: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project 1: Exploratory Data Analysis
+
+### Finding Data
+
+I chose to use the datasets, trump_approval_trend and trump_approval_poll, because I was curious and wanted to see the percentage of those who approve or disapprove of President Trump. Additionally, I wanted to see the differences and similarities between the two datasets in terms of estimate and actual rating. The trump_approval_trend has 11 variables and 1044 rows, and the trump_approval_poll has 20 variables and 3051 rows. Both datasets share the same variables of subgroup and of timestamp. I expect that there will be a correlation between subgroup and approval/disapproval rating. I acquired the dataset using the data(package=.packages(all.available=TRUE)) given in the project pdf. 
+
+### Installing Packages
+
+```{r}
+#Installed package for datasets
+#install.packages("fivethirtyeight")
+library(fivethirtyeight)
+data(package=.packages(all.available=TRUE))
+```
+
+```{r}
+#Reading datasets
+data(trump_approval_trend)
+data(trump_approval_poll)
+```
+
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+```
+
+### Tidying and Reshaping trump_approval_trend Dataset
+
+For trump_approval_trend, I created new columns and put the observations within those columnds in descending order to help tidy and reshape the datasets. 
+
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("dplyr")
+library(dplyr)
+
+#To Create New Column called "approval type"
+trump_trend_1<-trump_approval_trend%>%pivot_longer(cols=c("approve_estimate","approve_high","approve_low"),names_to="approval type",values_to="approval ratings")
+trump_trend_1
+
+#To Create New Column called "disapproval type"
+trump_trend_2<-trump_trend_1%>%select(-modeldate)%>%pivot_longer(c("disapprove_estimate","disapprove_high","disapprove_low"),names_to="disapproval type",values_to="disapproval ratings")
+trump_trend_2
+
+#To Arrange Columns in Descending Order
+trump_trend_3<-trump_trend_2%>%arrange(desc(`approval type`))%>%arrange(desc(`disapproval type`))%>%arrange(desc(subgroup))
+trump_trend_3
+
+```
+
+### Tidying and Reshaping trump_approval_poll Dataset
+
+For trump_approval_poll, I made the already tidy dataset untidy just as the instructions said and then tidy that dataset. I then removed the unwanted variables to help make the dataset more organized.
+
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("dplyr")
+library(dplyr)
+
+#To Untidy the Already Tidy Dataset
+trump_poll_1<-trump_approval_poll%>%pivot_wider(names_from="pollster",values_from="grade")
+trump_poll_1
+
+#To Tidy the Dataset
+trump_poll_2<-trump_poll_1%>%pivot_longer(cols=c("Morning Consult","Gallup","Ipsos","Rasmussen Reports/Pulse Opinion Research","Quinnipiac University","Public Policy Polling","YouGov","SurveyMonkey","IBD/TIPP","CNN/Opinion Research Corp.","CBS News","Zogby Interactive/JZ Analytics","McLaughlin & Associates","Emerson College","Pew Research Center","Harris Interactive","Fox News","Marist College","American Research Group","NBC News/Wall Street Journal","Suffolk University","Monmouth University","Garin-Hart-Yang/Global Strategy Group","Saint Leo University","Kaiser Family Foundation","icitizen","AP-NORC","Hart Research/Public Opinion Strategies","ABC News/Washington Post","USC Dornsife/LA Times","Gravis Marketing","Greenberg Quinlan Rosner","Selzer & Company","SurveyUSA","CNN/SSRS","Lake Research Partners/The Tarrance Group","Opinion Savvy","Lucid","Cards Against Humanity/Survey Sampling International","Public Religion Research Institute","America First Policies","Tarrance Group","Global Strategy Group/GBA Strategies","Public Opinion Strategies","The Washington Post"),names_to="pollster",values_to="grade")
+trump_poll_2
+
+#To Remove Unwanted Variables
+trump_poll_3<-trump_poll_2%>%select(-url,-start_date,-end_date,-poll_id,-question_id,-multiversions,-tracking,-weight,-pollster,-grade,-sample_size,-population,-created_date,-adjusted_approve,-adjusted_disapprove)
+trump_poll_3
+
+```
+
+### Joining 2+ separate data sources into a single dataset
+
+I performed all the joins here in order to figure out which ones were better suited. I determined that the inner_join would be the best because it shows the intersection of what was matched and was in common with both tables. I do not think that any case in each dataset was dropped. 
+
+```{r}
+#For joining, I dropped many variables from trump_approval_poll because I thought that there were too many variables that were not needed.
+
+#Joining data sources into datasets:
+
+#Left_join shows all rows from left, even without any matches in the right
+left_join<-trump_approval_poll%>%left_join(trump_approval_trend, by = c("subgroup", "timestamp"))
+left_join
+left_join_2<-trump_poll_3%>%left_join(trump_trend_3, by = c("subgroup", "timestamp"))
+left_join_2
+
+#Right_join shows all rows from right, even without any matches in the left
+right_join<-trump_approval_poll%>%right_join(trump_approval_trend, by = c("subgroup", "timestamp"))
+right_join
+right_join_2<-trump_poll_3%>%right_join(trump_trend_3, by = c("subgroup", "timestamp"))
+right_join_2
+
+#Note to self: For both full_join and inner_join: All row information is preserved. Order doesn't matter
+
+#Inner_join shows rows when there is match in both tables. It shows intersection of what is in common
+inner_join<-trump_approval_trend%>%inner_join(trump_approval_poll, by = c("subgroup", "timestamp"))
+inner_join
+inner_join_2<-trump_trend_3%>%inner_join(trump_poll_3, by = c("subgroup", "timestamp"))
+inner_join_2
+
+#Full_join combines results of both outer left and right
+full_join<-trump_approval_trend%>%full_join(trump_approval_poll, by = c("subgroup", "timestamp"))
+full_join
+full_join_2<-trump_trend_3%>%full_join(trump_poll_3, by = c("subgroup", "timestamp"))
+full_join_2
+
+```
+
+### Create Summary Statistics
+
+I used all 6 core dplyr functions (select, filter, arrange, mutate, summarize, group_by) in order to learn more about my dataset. 
+
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("dplyr")
+library(dplyr)
+
+inner_join_2<-trump_trend_3%>%inner_join(trump_poll_3, by = c("subgroup", "timestamp"))
+inner_join_2
+new<-inner_join_2
+new
+
+#Using select on Dataset
+new1<-new%>%select(subgroup,timestamp,`approval type`,`approval ratings`,approve,`disapproval type`,`disapproval ratings`,disapprove)
+new1
+
+#Using filter and select on Dataset
+new2<-new1%>%filter(subgroup=="Voters")%>%select(subgroup,timestamp,`approval type`,"estimated approval percentage"= `approval ratings`,"actual approval percentage"= approve,`disapproval type`,"estimated disapproval percentage"= `disapproval ratings`, "actual disapproval percentage"=disapprove)
+new2
+
+#Using arrange on Dataset
+new3<-new2%>%arrange(desc(`actual approval percentage`,`actual disapproval percentage`))
+new3
+
+#Using group_by and summarize on dataset
+new4<-new3%>%group_by(subgroup)%>%summarize(avr_est_approv_perc=mean(`estimated approval percentage`,na.rm=T),avr_est_disapprov_perc=mean(`estimated disapproval percentage`,na.rm=T), avr_actual_approv_perc=mean(`actual approval percentage`,na.rm=T),avr_actual_disapprov_perc=mean(`actual disapproval percentage`,na.rm=T))
+new4
+
+#Using mutate on dataset
+new5<-new1%>%mutate(types_definition=recode(`approval type`,approve_estimate="exact estimate of percentage", approve_high="higher bound of percentage", approve_low="lower bound of percentage"))
+new5
+
+#Using all of them except summarize on dataset. Summarize is above with group_by 
+new6<-new%>%filter(subgroup=="Voters")%>%select(subgroup,timestamp,`approval type`,"estimated approval percentage"= `approval ratings`,"actual approval percentage"= approve,`disapproval type`,"estimated disapproval percentage"= `disapproval ratings`, "actual disapproval percentage"=disapprove)%>%mutate(types_definition=recode(`approval type`,approve_estimate="exact estimate of percentage", approve_high="higher bound of percentage", approve_low="lower bound of percentage"))%>%arrange(desc(`actual approval percentage`,`actual disapproval percentage`))
+new6
+
+new6a<-inner_join_2%>%filter(subgroup=="Voters")%>%select(subgroup,timestamp,`approval type`,"estimated approval percentage"= `approval ratings`,"actual approval percentage"= approve,`disapproval type`,"estimated disapproval percentage"= `disapproval ratings`, "actual disapproval percentage"=disapprove)%>%mutate(types_definition=recode(`approval type`,approve_estimate="exact estimate of percentage", approve_high="higher bound of percentage", approve_low="lower bound of percentage"))%>%arrange(desc(`actual approval percentage`,`actual disapproval percentage`))
+new6a
+
+#I did the 6 core dplyr functions separately first before combining all of them because it was easier for me to organize it and keep track this way.
+
+#Using select on dataset
+new7<-new1%>%select(subgroup,timestamp,`approval type`,"estimated approval percentage"= `approval ratings`,"actual approval percentage"= approve,`disapproval type`,"estimated disapproval percentage"= `disapproval ratings`, "actual disapproval percentage"=disapprove)
+new7
+
+```
+
+###Create Summary Statistics (Continued)
+
+I created summary statistics for both after grouping and overall. I found mean, sd, n, and se. I used other summary statistics such as n_distinct, summarize_at, summarize_if, group_by, and cor for the correlation matrix. For instance, I learned that the mean estimated approval percentage of voters for President Trump is approximately 43.66%, and that the mean estimated disapproval percentage of voters for President Trump is approximately 52.04%. 
+
+```{r}
+#Using group_by subgroup and timestamp to find mean, sd, n, and se for estimated approval and disapproval
+sum_stat_1<-new6%>%group_by(subgroup,timestamp)%>%summarize(mean_est_approv_perc=mean(`estimated approval percentage`,na.rm=T),sd_est_approv_perc=sd(`estimated approval percentage`,na.rm=T),n=n(),se_est_approv_perc=sd_est_approv_perc/sqrt(n),mean_est_disapprov_perc=mean(`estimated disapproval percentage`,na.rm=T),sd_est_disapprov_perc=sd(`estimated disapproval percentage`),n=n(),se_est_disapprov_perc=sd_est_disapprov_perc/sqrt(n))
+sum_stat_1
+
+#Using n_distinct to summarize based on filter by voters
+sum_stat_2<-new6%>%summarize_all(n_distinct)
+sum_stat_2
+
+#Using summarize_at with vars
+sum_stat_3<-new6%>%select(-`approval type`)%>%summarize_at(vars(timestamp:`estimated approval percentage`),mean,na.rm=T)
+sum_stat_3
+
+#Using summarize_if and group_by to find minimum and maximum
+sum_stat_4<- new6%>%group_by(subgroup)%>%summarize_if(is.numeric,list(min=min,max=max),na.rm=T)
+sum_stat_4
+
+#Using summarize_if and group_by to find quantile
+sum_stat_5<-new6%>%group_by(subgroup)%>%summarize_if(is.numeric,list(Q3=quantile),probs=0.75, na.rm=T)
+sum_stat_5
+
+#Using quantile in general
+quantile(new6$`estimated approval percentage`,na.rm=TRUE)
+quantile(new6$`actual approval percentage`,na.rm=TRUE)
+quantile(new6$`estimated disapproval percentage`,na.rm=TRUE)
+quantile(new6$`actual disapproval percentage`,na.rm=TRUE)
+
+#Usng summarize_if and n_distinct
+sum_stat_6<-new6%>%summarize_if(is.character,n_distinct)
+sum_stat_6
+
+#Using summarize and cor for correlation matrix
+df1<-new6a%>%na.omit%>%select_if(is.numeric)
+cor(df1)
+view(cor(df1))
+
+```
+
+### Make Visualizations 
+
+I made a correlation heatmap. The correlation heatmap genereally shows no correlation between variables. This may be due to no real correlation or an error made in the code. However, there is a negative correlation of -0.81 for actual disapproval percentage and actual approval percentage. This makes sense because it means that as one of these percentage such as actual disapproval percentage is increasing, the other such as actual approval percentage will decrease and vice versa.
+
+```{r}
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("ggplot2")
+library(ggplot2)
+
+df1<-new6a%>%na.omit%>%select_if(is.numeric)
+cor(df1)
+#view(cor(df1))
+
+#Make correlation heatmap of numeric variables
+tidycor<-cor(df1)%>%as.data.frame%>%rownames_to_column%>%pivot_longer(-1,names_to="name",values_to="correlation") 
+head(tidycor)
+
+heatmap<-tidycor%>%ggplot(aes(rowname,name,fill=correlation))+geom_tile()+scale_fill_gradient2(low="red",mid="white",high="blue")+geom_text(aes(label=round(correlation,2)),color="black",size=4)+theme(axis.text.x=element_text(angle=90,hjust=1))+coord_fixed()
+heatmap
+
+#I tried to change the axis titles but the graph would not work or show up whenever I tried changing my code.
+```
+
+### Make Visualizations (Continued)
+
+I made ggplots to shows some interesting findings from the descriptive statistics from above.
+
+The sideway bar graph shows that the relationship between subgroups (voters, all polls, and adults) and estimated approval percentage for President Trump by its approval type (approve_estimate, approve_high, approve_low). It shows that there is a higher number of estimated approval percentage for all approval types in voters than in adults and shows how the total number of estimated approval percentages for all approval types are distributed. For all polls, there are more high approval ratings than low approval ratings. 
+
+```{r}
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("ggplot2")
+library(ggplot2)
+
+#The ggplot that shows the relations of subgroup vs. estimated approval percentage by its approval type
+ggplot2<-new7%>%ggplot(aes(subgroup,`estimated approval percentage`,color=`approval type`))+geom_bar(stat="identity")+coord_flip()+ggtitle("Subgroup vs. Estimated Approval Percentage by Approval Type")+scale_x_discrete()
+ggplot2
+
+```
+
+###  Make Visualizations (Continued)
+
+I made ggplots to shows some interesting findings from the descriptive statistics from above. 
+
+The dot graph shows that the relationship between estimated approval percentage (in percentage) by approval type (approve_estimate, approve_high, and approve_low). It shows it in a more concise way. The highest estimated approval percentage in voters is approximately 48%, according to the graph. The lowest estimated approval percentage is approximately 36.5% for all polls, according to the graph.
+
+```{r}
+#install.packages("dplyr")
+library(dplyr)
+#install.packages("ggplot2")
+library(ggplot2)
+
+#Make ggplots
+ggplot1<-new7%>%ggplot(aes(subgroup,`actual approval percentage`))+geom_bar(stat="summary")+geom_errorbar(stat="summary")
+ggplot1
+
+#The ggplot that shows the relations of approval type vs. estimated approval percentage by its subgroup
+ggplot3<-new7%>%ggplot(aes(`approval type`,`estimated approval percentage`))+geom_point(size=3,aes(color=subgroup))+scale_fill_brewer()+ggtitle("Estimated Approval Percentage vs. Approval Type by Subgroup")
+ggplot3
+
+```
+
+### K-means/PAM clustering on PCA
+
+I kept getting an error saying that my dataset was too large for me to do k-means/PAM clustering/Gower's dissimilarity matrix on. As a result, in order to knit, I made all my code into comments. This does mean that I am unable to interpret my components since they would not run. 
+
+```{r}
+#If it was done with kmeans:
+library(cluster)
+clust_dat<-new7%>%ungroup%>%select_if(is.numeric)
+kmeans1<-clust_dat%>%scale%>%kmeans(3)
+kmeansclust <- clust_dat%>%mutate(cluster=as.factor(kmeans1$cluster))
+plot<-kmeansclust%>%ggplot(aes(`estimated approval percentage`,`estimated disapproval percentage`,color=cluster))+geom_point()
+plot
+
+```
+
+
+```{r}
+
+```

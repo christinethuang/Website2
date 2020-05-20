@@ -1,0 +1,20 @@
+{{ partial "head" . }}
+  <body>
+    <div id="wrap">
+      {{ partial "header" . }}
+      <section id="about">
+        <div class="container">
+        <div class="avatar">
+          <img class="img-circle" src="{{ .Site.BaseURL }}img/{{ .Site.Params.avatar }}" alt="It me." height=190px width=180px>
+        </div>
+        <h3>I am Christine Huang <strong>{{ .Site.Params.author }}</strong>, a senior majoring in Biology and minoring Architecture Studies and Business Foundations Program. In my free time, I enjoy drinking coffee, traveling, and hanging out with friends and family.</h3>
+        <h3>Here are some of my working <a href="{{ .Site.BaseURL }}projects/"> projects</a>.</h3>
+        <h3>For more, check out my academic &amp; professional <a href="resume.pdf" target="_blank">resume</a>.</h3>
+        <h3>Contact me at <a href="http://twitter.com/{{ .Site.Params.Social.Twitter }}">linkedin{{ .Site.Params.Social.Twitter }}</a> and/or by <a href="mailto:{{ .Site.Params.Social.Email }}">email</a>.</h3>
+        {{ partial "social.html" . }}
+        </div>
+      </section>
+    </div>
+    {{ partial "footer" . }}
+  </body>
+</html>

@@ -1,0 +1,422 @@
+---
+title: 'Project 2: Modeling, Testing, and Predicting'
+author: "SDS 348"
+output:
+  html_document: default
+  pdf_document: default
+showpagemeta: false
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Project 2: Modeling, Testing, and Predicting
+
+### Introducing Dataset
+
+I chose a different dataset from my project 1 because I ran into a lot of knitting issues with project 1 and wanted to try a different dataset. For project 2, I used the package fivethirtyeight and chose dataset, police_killings, that analyzes where police have killed Americans in the year of 2015. I chose this dataset because I wanted to see if there were any trends with killings of individuals to their relevant location and more.
+
+The dataset, police_killings, has 467 rows and 34 variables with at least one variable being categorical (with 2-5 groups), at least two variables being numeric, and at least one variable being binary. The variables are name, age, gender, raceethnicity, month, day, year, streetaddress, city, state, latitude, longitude, stat_fp, county_fp, tract_ce, geo_id, nameIsad, lawenforcementagency, cause, armed, pop, share_white, share_black, share_hispanic, p_income, h_income, county_income, comp_income, county_bucket, nat_bucket, pov, urate, and college.
+
+```{r}
+#Installed package for datasets
+#data(package=.packages(all.available=TRUE))
+#install.packages("fivethirtyeight")
+library(fivethirtyeight)
+```
+
+```{r}
+#Reading Dataset
+data(police_killings)
+```
+
+### Tidying Dataset
+
+Although the dataset provides a wide range of information regarding where police have killed Americans in 2015, I decided to tidy up my dataset to make it easier to focus on certain variables. I decided to keep the main variables like age, gender, race, state, cause, armed, household_quintile, poverty_rate, unemployment_rate, and college. As seen below, I renamed some of the variables to make them easier to read. 
+
+Note: I did not analyze all of the main variables throughout project 2, but I decided to keep them in case I wanted to use them.
+
+```{r}
+#install.packages("tidyverse")
+library(tidyverse)
+#install.packages("dplyr")
+library(dplyr)
+
+#Tidying Up Dataset
+crime<-police_killings%>%dplyr::select(-1,-5,-6,-7,-8,-9,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,-23,-24,-25,-26,-27,-28,-29,-30)%>%rename(race=raceethnicity,household_quintile=nat_bucket,unemployment_rate=urate,poverty_rate=pov)%>%na.omit
+```
+
+### Part 1: MANOVA Testing
+
+I performed a MANOVA to test whether a subset of numeric variables called age and household_quintile differ by the categorical variable of race. I wanted to determine the effect of race (black, white, hispanic/latino,asian/pacific islander,native american) on age and house_quintile. I wanted to see if there was any connections between the variables that might provide insight into trends of where police killed Americans in 2015.
+
+Since p-value is less than 0.05, the overall MANOVA is significant. This means that the numeric variables of age and household_quintile show a mean difference across the categorical variable of race. In other words, age and household_quintile differ by race. 
+
+```{r}
+#MANOVA
+#H0:For each response variable, the means of the groups are equal.
+#Ha:For at least response variable, at least 1 group mean differs.
+man1<-manova(cbind(age,household_quintile)~race,data=crime)
+summary(man1)
+```
+
+Since the results from the MANOVA was significant, I performed an univariate ANOVA and post-hoc t test to show which groups differed. The univariate ANOVA results were F(4,433)=11.069 and p-value was less than 0.05, and F(4,433)=3.5469 and p-value was less than 0.05. From the results, both variables are significant, so at least one race differs for age and household_quintile. 
+
+```{r}
+summary.aov(man1) #getting univariate ANOVAs from MANOVA
+
+crime%>%group_by(race)%>%summarize(mean(age),mean(household_quintile))
+
+pairwise.t.test(crime$age,crime$household_quintile,p.adj="none") #post-hoc t test with pairwise comparisons
+```
+
+I did 1 MANOVA, 2 ANOVAs, and 10 t tests (13 tests).The probability of at least one type I error is 0.4866579. The bonferroni correction to adjust significance level is 0.003846154. Even after adjusting, the races were found to differ significantly from each other in regards to household_quintile and age. 
+
+```{r}
+1+2+10 #number of tests 
+1-(0.95^13) #probability of at least one type I error 
+0.05/13 #bonferroni correction to adjust significance level
+```
+
+For the assumptions, they are likely to have not been met.The density plots does not look like the one presented in the lecture powerpoint slides. I would say that the multivariate normality has not been met. Although the graph does work, it does not appear to be the best. 
+
+Just from eyeballing the assumption of multivariate normality, I would that this assumption has not been met. There is not really a relative homogeneity.
+
+The graphs may appear this way because household_quintiles only has 5 options. There were no apparent univariate or multivariate outliers. 
+
+```{r}
+#MANOVA Assumptions
+library(mvtnorm);library(ggExtra)
+p<-ggplot(crime,aes(age,household_quintile))+geom_point(alpha=.5)+geom_density_2d(h=2)
+ggMarginal(p,type="density",xparams=list(bw=.5),yparams=list(bw=.5))
+cov(crime$age,crime$household_quintile)
+
+#Assumption of multivariate normality
+#install.packages("ggplot2")
+library(ggplot2)
+ggplot(crime,aes(x=age,y=household_quintile))+geom_point(alpha=.5)+geom_density_2d(h=10)+facet_wrap(~race)
+
+#Assumption of homogeneity of (co)variances
+library(dplyr)
+covmats<-crime%>%group_by(race)%>%do(covmat=cov(.[c(1,7:10)]))
+for(i in 1:6)
+  {print(as.character(covmats$race[i]));print(covmats$covmat[i])}
+```
+
+### Part 2:Randomization Test
+
+I performed a permutation test for my randomization test. First, I stated the null hypothesis and alternative hypotheses. 
+
+Null hypothesis(H0): The mean age of Americans killed by police in 2015 is the same for males and females. 
+Alternative hypothesis(Ha): The mean age of Americans killed by police in 2015 is different for males and females.
+
+I created a plot visualizing null distribution. There are more American males than American females who were killed by the police in 2015. The majority of the American males killed by the police in 2015 tend to be in their late-twenties late, and the majority of American females killed by the police in 2015 tend to be in their mid-forties. 
+
+I calculated test statistic for categorical v. numeric variables for mean difference. The mean age difference between American males and females killed by the police in 2015 is 1.341866.
+
+```{r}
+#Randomization Test
+#Plot Visualizing Null Distribution
+library(ggplot2)
+ggplot(crime,aes(age,fill=gender))+geom_histogram(bins=6.5)+facet_wrap(~gender,ncol=2)+theme(legend.position ="none")
+
+#Test Statistic
+#Categorical v. Numeric: Mean difference
+crime%>%group_by(gender)%>%summarize(means=mean(age))%>%summarize('mean_diff:'=diff(means))
+```
+
+### Part 2:Randomization Test (Continued)
+
+I then performed random permutations for 5000 times to see the distribution. I calculated the Two-Tailed P-value for permutation test. This is the probability of seeing mean difference when it is under "randomization distribution". I compared with Welch's t-test which assumes normality. Since the p-value is greater than 0.05, I cannot reject the null hypothesis. This indicates that the means of the two populations are not significantly different. The mean age of Americans killed by police in 2015 is the same for males and females. 
+
+```{r}
+#Random permutations for 5000 times
+set.seed(348)
+rand_dist <- vector()
+for (i in 1:5000) {
+new <- data.frame(age = sample(crime$age), gender = crime$gender)
+rand_dist[i] <- mean(new[new$gender == "Male", ]$age) -
+mean(new[new$gender == "Female", ]$age)
+}
+{
+hist(rand_dist, main = "", ylab = "")
+abline(v = 1.341866, col = "red")
+}
+
+#Two-Tailed P-value for permutation test
+#This is the probability of seeing mean difference when it is under "randomization distribution".
+mean(rand_dist > 1.341866 | rand_dist < -1.341866)
+
+#Welch's t-test:
+t.test(data=crime,age~gender) #p-value = 0.6361
+```
+
+### Part 3:Linear Regression Model
+
+I made a linear regression model predicting poverty_rate from age and gender with their interaction.
+
+I mean-centered numeric variables in the interaction. I could not get a reasonable interpretation from age=0, so I centered the mean difference in poverty_rate for gender at the average of age. This means that the difference in poverty_rate for gender at average age was 37.2.
+
+I then interpreted the coefficient estimates.#For individuals at the average age, males have average/predicted poverty_rate that is approximately 2.75 (b=2.25,t=0.90) greater than females. The p-value is less than 0.05. 
+
+The equation from the regression after centering BMI for interaction between categorical and continuous is #predicted poverty_rate = 18.70+2.75(gender)-0.45(age_c)+0.34(gender*age).
+
+```{r}
+#Mean-Centering Numeric Variables
+mean(crime$age)
+data.frame(age=head(crime$age))
+data.frame(age_c=head(crime$age-mean(crime$age)))
+
+#Regression after centering BMI
+#Interaction between categorical and continuous
+crime$age_c<-crime$age-mean(crime$age)
+fit<-lm(poverty_rate~gender*age_c,data=crime)
+summary(fit)
+```
+
+I plotted the regression and checked the ANOVA.
+
+```{r}
+qplot(x=age,y=poverty_rate,color=gender,data=crime)+stat_smooth(method="lm",se=FALSE,fullrange=TRUE)
+
+#ANOVA to see if age slopes differ between the gender of male and female. To see if there is any interaction
+anova(fit)
+```
+
+I checked the assumption of linearity, normality, and homoskedasticity graphically and using tests. The assumption of linearity, normality, and homoskedasticity appear to be met. The graphs do appear to be somewhat linear and normal. 
+
+```{r}
+#Assumption of Linearity and Homoskedasticity
+resids<-fit$residuals
+fitvals<-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0,color='red')
+
+library(sandwich)
+library(lmtest)
+bptest(fit)
+
+#Assumption of Normality
+ggplot()+geom_histogram(aes(resids),bins=20)
+
+ggplot()+geom_qq(aes(sample=resids))+geom_qq_line(aes(sample=resids),color='red')
+
+ks.test(resids,"pnorm",sd=sd(resids))
+```
+
+I recomputed regressions results with robust standard errors via coeftest(...,vcov=vcovHC(..)). Doing so helped avoid violations of homoscedasticity/noise. 
+
+Before robust standard errors, the standard errors were approximately 2.99, 3.06, 0.25, and 0.26, respectively. After robust standard errors, the standard errors were approximately 3.38, 3.44, 0.38, and 0.39. The proportion of the variation in the outcome explained by the model (r-squared) is 0.01925.
+
+```{r}
+#Recomputing results with robust standard errors 
+
+#Before robust SEs
+summary(fit)$coef[,1:2]
+
+#After corrected SE
+coeftest(fit,vcov=vcovHC(fit))[,1:2]
+
+#R-squared 
+summary(fit)
+```
+
+### Part 4:Regression Model with Bootstrapped Standard Errors
+
+I reran the same regression model (with interaction) and computed bootstrapped standard errors. I randomly sampled rows with replacement and repeated it 5000 times.
+
+The bootstrapped standard errors are approximately 3.10, 3.16, 0.35, and 0.36, respectively. The bootstrapped standard errors are smaller than the robust standard errors which are seen above and are larger than the original standard errors which are seen above. The p-value remains basically the same.
+
+```{r}
+#Bootstrapped Standard Errors
+samp_distn<-replicate(5000,{
+  boot_crime<-boot_crime<-crime[sample(nrow(crime),replace=TRUE),]
+  fit<-lm(poverty_rate~gender*age_c,data=boot_crime)
+  coef(fit)
+}) #repeat 5000 times
+
+#Estimated SEs (resampling rows)
+samp_distn%>%t%>%as.data.frame%>%summarize_all(sd)
+
+# Empirical 95% CI
+samp_distn%>%t%>%as.data.frame%>%gather%>%group_by(key)%>% summarize(lower=quantile(value,.025), upper=quantile(value,.975)) 
+```
+
+### Part 5:Logistic Regression 
+
+I first added the code from the powerpoint slides to update class_diag to make sure that it worked correctly.
+
+```{r}
+class_diag<-function(probs,truth){
+  
+  if(is.numeric(truth)==FALSE & is.logical(truth)==FALSE) truth<-as.numeric(truth)-1
+  
+  tab<-table(factor(probs>.5,levels=c("FALSE","TRUE")),truth)
+  prediction<-ifelse(probs>.5,1,0)
+  acc=mean(truth==prediction)
+  sens=mean(prediction[truth==1]==1)
+  spec=mean(prediction[truth==0]==0)
+  ppv=mean(truth[prediction==1]==1)
+  
+  #CALCULATE EXACT AUC
+  ord<-order(probs, decreasing=TRUE)
+  probs <- probs[ord]; truth <- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup<-c(probs[-1]>=probs[-length(probs)], FALSE)
+  TPR<-c(0,TPR[!dup],1); FPR<-c(0,FPR[!dup],1)
+  
+  n <- length(TPR)
+  auc<- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}
+```
+
+For the binary categorical variable, I used the variable, gender, and made Male=1 and Female=0. For the explanatory variables, I used household_quintile and age. 
+
+```{r}
+#Getting Binary Variable by Discretizing a Numeric 
+#From the variable of gender, making Male=1 and Female=0
+library(tidyverse)
+library(lmtest)
+sex<-crime%>%mutate(y=ifelse(gender=="Male",1,0))
+sex
+
+sex%>%group_by(sex$y)%>%count() #20 females, 418 males
+```
+
+I performed logistic regression predicting binary categorical variable of gender in y from two explanatory variables of household_quintile and age. I also found the coefficients. 
+
+Going up 1 age increases log-odds by 0.01058, and going up 1 household_quintile decreases log-odds by 0.3158. 
+
+Going up 1 age multiplies odds by a factor of approximately 1.0106, and going up 1 household_quintile multiplies odds by a factor of approcinately 0.7272.
+
+```{r}
+#Logistic Regression
+fit<-glm(y~age+household_quintile,data=sex,family="binomial")
+summary(fit)
+coeftest(fit)
+
+#Exponentiate Coeffecients before Interpretation
+exp(coef(fit)) #coeffecient estimate
+```
+
+I did a confusion matrix for logistic regression. 
+
+The true positive rate (TPR) was 1, and the true negative rate (TNR) is 0. This means that the model is not predicting females since male was assigned to 1. 
+
+The precision (PPV) was 0 which means that the proportion classified as females actually are females. The area of the curve (AUC) was 0.615251 which is considered to be poor.
+
+```{r}
+#Confusion Matrix
+prob<-predict(fit,type="response")
+pred<-ifelse(prob>.5,1,0)
+table(prediction=pred,truth=sex$y)%>%addmargins
+
+#Computing Accuracy, Sensivity (TPR), and Specifity (TNR)
+(0+418)/438 #accuracy
+418/418 #sensitivity (TPR)
+0/20 # specificity (TNR)
+0/20 # precision (PPV)
+
+#Computing AUC
+library(pROC)
+class_diag(prob,sex$y)
+auc(sex$y,prob) #AUC
+```
+
+I used ggplot to plot density of log-odds (logit) by the binary outcome variable of gender in y. The plot only has one curve because the model does not predict females and only predicts males. 
+
+```{r}
+#Plot density of log-odds (logit)
+sex$logit<-predict(fit,type="link")
+sex%>%ggplot()+geom_density(aes(logit,color=y,fill=y),alpha=.4)+theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab("predictor (logit)")
+```
+
+I created and plotted a ROC curve. The curve shows that the AUC should be approximately 0.6. 
+
+This is because generally, if the TPR was 1 and FPR was 0, then the line would equal to AUC=1. If TPR was equal to FPR, then the line would equal to AUC=0.5. Since the line shown in this ROC curve is below TPR=1 and FPR=0 but above TPR equal to FPR, the AUC should be approximately 0.6.
+
+I calculated AUC with a package to make it easier to find. The AUC was 0.6152512 which is considered to be poor. 
+
+```{r}
+#ROC curve
+library(plotROC)
+ROCplot<-ggplot(sex)+geom_roc(aes(d=y,m=prob),n.cuts=0)
+ROCplot
+calc_auc(ROCplot) #AUC
+```
+
+I performed a 10-fold CV and reported average out-of-sample accuracy, sensitivity, recall, and AUC using class_diag. I got NA as the answer for all of them (accuracy, sensitivity, specificity, recall, and AUC). I think NA showed for all of them because the model does not predict females. 
+
+```{r}
+#Perform 10-fold CV
+set.seed(1234)
+k=10
+
+data<-sex[sample(nrow(sex)),]
+folds<-cut(seq(1:nrow(sex)),breaks=k,labels=F)
+
+diags<-NULL
+for(i in 1:k){
+  train<-data[folds!=i,]
+  test<-data[folds==i,]
+  truth<-test$gender
+  
+  fit<-glm(y~age+household_quintile,data=train,family="binomial")
+  probs<-predict(fit,newdata=test,type="response")
+  
+  diags<-rbind(diags,class_diag(probs,truth))
+}
+
+summarize_all(diags,mean)
+```
+
+### Part 6:LASSO regression
+
+I performed a LASSO regression on the continuous numeric variable of age and inputted the rest of my numeric variables like household_quintile, poverty_rate, unemployment_rate, and college as predictors. 
+
+From lambda, the simplest model whose accuracy is near that of the best is poverty_rate. The variable, poverty_rate, is also the only variable that is retained in the matrix. I used poverty_rate in the 10-fold CV.
+
+I performed a 10-fold CV and compared the residual standard error (RMSE). The residual standard error is 12.45 on 392 degrees of freedom. Since the residual standard error is not a smaller value, then it is not the best fit.
+
+```{r}
+#LASSO regression
+library(glmnet)
+y<-as.matrix(crime$age)
+x<-crime%>%select(-age,-gender,-race,-state,-cause,-armed,-age_c)%>%mutate_all(scale)%>%as.matrix #to remove variables that were not numeric/continuous but to also keep the rest of the variables that were numeric 
+#head(x)
+
+#Simplest Model from lambda
+cv<-cv.glmnet(x,y) 
+lasso<-glmnet(x,y,lambda=cv$lambda.1se) 
+coef(lasso)
+
+#Perform 10-fold CV with continuous numeric variables
+set.seed(1234)
+k=10 #choose number of folds
+
+data1<-crime[sample(nrow(crime)),]  
+folds<-cut(seq(1:nrow(crime)),breaks=k,labels=F)
+
+diags<-NULL 
+for(i in 1:k){
+  train<-data1[folds!=i,] 
+  test<-data1[folds==i,]
+  
+  fit<-lm(age~poverty_rate,data=train) 
+  yhat<-predict(fit,newdata=test)
+  
+  diags<-mean((test$age-yhat)^2) 
+}
+
+mean(diags)
+
+summary(fit)
+
+```
+
+
