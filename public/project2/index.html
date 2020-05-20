@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="en-US">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="author" content="Christine Huang" />
+    <meta name="description" content="Describe your website">
+    <link rel="shortcut icon" type="image/x-icon" href="/img/favicon.ico">
+    <title>Project 2: Modeling, Testing, and Predicting</title>
+    <meta name="generator" content="Hugo 0.71.0" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" href="/css/main.css" />
+    <link rel="stylesheet" type="text/css" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+    <link rel="stylesheet" type="text/css" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:200,400,200bold,400old" />
+    
+    <!--[if lt IE 9]>
+			<script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+			<script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+		<![endif]-->
+
+    
+  </head>
+
+  <body>
+    <div id="wrap">
+
+      
+      <nav class="navbar navbar-default">
+  <div class="container">
+    <div class="navbar-header">
+      <a class="navbar-brand" href="/"><i class="fa fa-home"></i></a>
+      <button type="button" class="navbar-toggle" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+    </div>
+    <div class="navbar-collapse collapse" id="navbar">
+      <ul class="nav navbar-nav navbar-right">
+      
+        
+        <li><a href="/blog/">BLOG</a></li>
+        
+        <li><a href="/projects/">PROJECTS</a></li>
+        
+        <li><a href="/resume.pdf/">RESUME</a></li>
+        
+      
+      </ul>
+    </div>
+  </div>
+</nav>
+
+      
+        <section id="projects">
+  <div class="container">
+    <h3>Projects</h3>
+    <div class="panel panel-default">
+      <div class="panel-body">
+      
+
+
+<div id="project-2-modeling-testing-and-predicting" class="section level2">
+<h2>Project 2: Modeling, Testing, and Predicting</h2>
+<div id="introducing-dataset" class="section level3">
+<h3>Introducing Dataset</h3>
+<p>I chose a different dataset from my project 1 because I ran into a lot of knitting issues with project 1 and wanted to try a different dataset. For project 2, I used the package fivethirtyeight and chose dataset, police_killings, that analyzes where police have killed Americans in the year of 2015. I chose this dataset because I wanted to see if there were any trends with killings of individuals to their relevant location and more.</p>
+<p>The dataset, police_killings, has 467 rows and 34 variables with at least one variable being categorical (with 2-5 groups), at least two variables being numeric, and at least one variable being binary. The variables are name, age, gender, raceethnicity, month, day, year, streetaddress, city, state, latitude, longitude, stat_fp, county_fp, tract_ce, geo_id, nameIsad, lawenforcementagency, cause, armed, pop, share_white, share_black, share_hispanic, p_income, h_income, county_income, comp_income, county_bucket, nat_bucket, pov, urate, and college.</p>
+<pre class="r"><code>#Installed package for datasets
+#data(package=.packages(all.available=TRUE))
+#install.packages(&quot;fivethirtyeight&quot;)
+library(fivethirtyeight)</code></pre>
+<pre class="r"><code>#Reading Dataset
+data(police_killings)</code></pre>
+</div>
+<div id="tidying-dataset" class="section level3">
+<h3>Tidying Dataset</h3>
+<p>Although the dataset provides a wide range of information regarding where police have killed Americans in 2015, I decided to tidy up my dataset to make it easier to focus on certain variables. I decided to keep the main variables like age, gender, race, state, cause, armed, household_quintile, poverty_rate, unemployment_rate, and college. As seen below, I renamed some of the variables to make them easier to read.</p>
+<p>Note: I did not analyze all of the main variables throughout project 2, but I decided to keep them in case I wanted to use them.</p>
+<pre class="r"><code>#install.packages(&quot;tidyverse&quot;)
+library(tidyverse)</code></pre>
+<pre><code>## ── Attaching packages ─────────────────────── tidyverse 1.3.0 ──</code></pre>
+<pre><code>## ✓ ggplot2 3.2.1     ✓ purrr   0.3.3
+## ✓ tibble  2.1.3     ✓ dplyr   0.8.4
+## ✓ tidyr   1.0.2     ✓ stringr 1.4.0
+## ✓ readr   1.3.1     ✓ forcats 0.4.0</code></pre>
+<pre><code>## ── Conflicts ────────────────────────── tidyverse_conflicts() ──
+## x dplyr::filter() masks stats::filter()
+## x dplyr::lag()    masks stats::lag()</code></pre>
+<pre class="r"><code>#install.packages(&quot;dplyr&quot;)
+library(dplyr)
+
+#Tidying Up Dataset
+crime&lt;-police_killings%&gt;%dplyr::select(-1,-5,-6,-7,-8,-9,-11,-12,-13,-14,-15,-16,-17,-18,-19,-22,-23,-24,-25,-26,-27,-28,-29,-30)%&gt;%rename(race=raceethnicity,household_quintile=nat_bucket,unemployment_rate=urate,poverty_rate=pov)%&gt;%na.omit</code></pre>
+</div>
+<div id="part-1-manova-testing" class="section level3">
+<h3>Part 1: MANOVA Testing</h3>
+<p>I performed a MANOVA to test whether a subset of numeric variables called age and household_quintile differ by the categorical variable of race. I wanted to determine the effect of race (black, white, hispanic/latino,asian/pacific islander,native american) on age and house_quintile. I wanted to see if there was any connections between the variables that might provide insight into trends of where police killed Americans in 2015.</p>
+<p>Since p-value is less than 0.05, the overall MANOVA is significant. This means that the numeric variables of age and household_quintile show a mean difference across the categorical variable of race. In other words, age and household_quintile differ by race.</p>
+<pre class="r"><code>#MANOVA
+#H0:For each response variable, the means of the groups are equal.
+#Ha:For at least response variable, at least 1 group mean differs.
+man1&lt;-manova(cbind(age,household_quintile)~race,data=crime)
+summary(man1)</code></pre>
+<pre><code>##            Df  Pillai approx F num Df den Df    Pr(&gt;F)    
+## race        4 0.11879   6.8358      8    866 9.812e-09 ***
+## Residuals 433                                             
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Since the results from the MANOVA was significant, I performed an univariate ANOVA and post-hoc t test to show which groups differed. The univariate ANOVA results were F(4,433)=11.069 and p-value was less than 0.05, and F(4,433)=3.5469 and p-value was less than 0.05. From the results, both variables are significant, so at least one race differs for age and household_quintile.</p>
+<pre class="r"><code>summary.aov(man1) #getting univariate ANOVAs from MANOVA</code></pre>
+<pre><code>##  Response age :
+##              Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## race          4   6636 1658.99  11.069 1.478e-08 ***
+## Residuals   433  64894  149.87                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+##  Response household_quintile :
+##              Df Sum Sq Mean Sq F value   Pr(&gt;F)   
+## race          4  23.45  5.8628  3.5469 0.007319 **
+## Residuals   433 715.72  1.6529                    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>crime%&gt;%group_by(race)%&gt;%summarize(mean(age),mean(household_quintile))</code></pre>
+<pre><code>## # A tibble: 5 x 3
+##   race                   `mean(age)` `mean(household_quintile)`
+##   &lt;chr&gt;                        &lt;dbl&gt;                      &lt;dbl&gt;
+## 1 Asian/Pacific Islander        40.8                       2.7 
+## 2 Black                         33.9                       2.24
+## 3 Hispanic/Latino               31.8                       2.25
+## 4 Native American               27.8                       1.5 
+## 5 White                         40.7                       2.67</code></pre>
+<pre class="r"><code>pairwise.t.test(crime$age,crime$household_quintile,p.adj=&quot;none&quot;) #post-hoc t test with pairwise comparisons</code></pre>
+<pre><code>## 
+##  Pairwise comparisons using t tests with pooled SD 
+## 
+## data:  crime$age and crime$household_quintile 
+## 
+##   1     2     3     4    
+## 2 0.094 -     -     -    
+## 3 0.113 0.965 -     -    
+## 4 0.788 0.243 0.269 -    
+## 5 0.091 0.615 0.597 0.174
+## 
+## P value adjustment method: none</code></pre>
+<p>I did 1 MANOVA, 2 ANOVAs, and 10 t tests (13 tests).The probability of at least one type I error is 0.4866579. The bonferroni correction to adjust significance level is 0.003846154. Even after adjusting, the races were found to differ significantly from each other in regards to household_quintile and age.</p>
+<pre class="r"><code>1+2+10 #number of tests </code></pre>
+<pre><code>## [1] 13</code></pre>
+<pre class="r"><code>1-(0.95^13) #probability of at least one type I error </code></pre>
+<pre><code>## [1] 0.4866579</code></pre>
+<pre class="r"><code>0.05/13 #bonferroni correction to adjust significance level</code></pre>
+<pre><code>## [1] 0.003846154</code></pre>
+<p>For the assumptions, they are likely to have not been met.The density plots does not look like the one presented in the lecture powerpoint slides. I would say that the multivariate normality has not been met. Although the graph does work, it does not appear to be the best.</p>
+<p>Just from eyeballing the assumption of multivariate normality, I would that this assumption has not been met. There is not really a relative homogeneity.</p>
+<p>The graphs may appear this way because household_quintiles only has 5 options. There were no apparent univariate or multivariate outliers.</p>
+<pre class="r"><code>#MANOVA Assumptions
+library(mvtnorm);library(ggExtra)
+p&lt;-ggplot(crime,aes(age,household_quintile))+geom_point(alpha=.5)+geom_density_2d(h=2)
+ggMarginal(p,type=&quot;density&quot;,xparams=list(bw=.5),yparams=list(bw=.5))</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<pre class="r"><code>cov(crime$age,crime$household_quintile)</code></pre>
+<pre><code>## [1] 0.9662863</code></pre>
+<pre class="r"><code>#Assumption of multivariate normality
+#install.packages(&quot;ggplot2&quot;)
+library(ggplot2)
+ggplot(crime,aes(x=age,y=household_quintile))+geom_point(alpha=.5)+geom_density_2d(h=10)+facet_wrap(~race)</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<pre class="r"><code>#Assumption of homogeneity of (co)variances
+library(dplyr)
+covmats&lt;-crime%&gt;%group_by(race)%&gt;%do(covmat=cov(.[c(1,7:10)]))
+for(i in 1:6)
+  {print(as.character(covmats$race[i]));print(covmats$covmat[i])}</code></pre>
+<pre><code>## [1] &quot;Asian/Pacific Islander&quot;
+## [[1]]
+##                            age household_quintile poverty_rate
+## age                132.6222222          2.1555556   -37.606667
+## household_quintile   2.1555556          1.7888889   -12.632222
+## poverty_rate       -37.6066667        -12.6322222   157.404556
+## unemployment_rate   -0.4077232         -0.1141078     1.092641
+## college              0.2420601          0.2064803    -1.772263
+##                    unemployment_rate     college
+## age                      -0.40772317  0.24206008
+## household_quintile       -0.11410783  0.20648034
+## poverty_rate              1.09264099 -1.77226348
+## unemployment_rate         0.01084470 -0.01089063
+## college                  -0.01089063  0.05493229
+## 
+## [1] &quot;Black&quot;
+## [[1]]
+##                             age household_quintile poverty_rate
+## age                127.37533764        -0.22190252   -2.9436406
+## household_quintile  -0.22190252         1.75525543  -15.9782149
+## poverty_rate        -2.94364063       -15.97821491  242.6835432
+## unemployment_rate   -0.03158373        -0.06647341    0.9668226
+## college             -0.17022388         0.15377473   -1.4018456
+##                    unemployment_rate      college
+## age                     -0.031583728 -0.170223878
+## household_quintile      -0.066473414  0.153774731
+## poverty_rate             0.966822586 -1.401845552
+## unemployment_rate        0.008548971 -0.008438784
+## college                 -0.008438784  0.030419830
+## 
+## [1] &quot;Hispanic/Latino&quot;
+## [[1]]
+##                            age household_quintile poverty_rate
+## age                84.53968254        -0.87301587    1.5226190
+## household_quintile -0.87301587         1.49206349  -11.6797619
+## poverty_rate        1.52261905       -11.67976190  149.7576364
+## unemployment_rate  -0.04047718        -0.01552277    0.1816803
+## college            -0.04674762         0.10071913   -0.8415171
+##                    unemployment_rate      college
+## age                     -0.040477178 -0.046747619
+## household_quintile      -0.015522767  0.100719133
+## poverty_rate             0.181680333 -0.841517094
+## unemployment_rate        0.002147081 -0.002443455
+## college                 -0.002443455  0.017001290
+## 
+## [1] &quot;Native American&quot;
+## [[1]]
+##                              age household_quintile poverty_rate
+## age                 1.491667e+01         1.83333333  -56.8083333
+## household_quintile  1.833333e+00         0.33333333   -9.7500000
+## poverty_rate       -5.680833e+01        -9.75000000  304.7958333
+## unemployment_rate  -2.117012e-01        -0.03445154    0.9365787
+## college            -8.527267e-05         0.01889830   -0.5299567
+##                    unemployment_rate       college
+## age                     -0.211701153 -8.527267e-05
+## household_quintile      -0.034451539  1.889830e-02
+## poverty_rate             0.936578736 -5.299567e-01
+## unemployment_rate        0.004082864 -1.251258e-03
+## college                 -0.001251258  3.429583e-03
+## 
+## [1] &quot;White&quot;
+## [[1]]
+##                             age household_quintile poverty_rate
+## age                183.20439746         0.43453612   -6.3403432
+## household_quintile   0.43453612         1.65103808  -10.8363326
+## poverty_rate        -6.34034322       -10.83633264  120.7976074
+## unemployment_rate    0.01769414        -0.02954711    0.2532585
+## college             -0.07914748         0.10788452   -0.6379464
+##                    unemployment_rate      college
+## age                      0.017694143 -0.079147478
+## household_quintile      -0.029547111  0.107884520
+## poverty_rate             0.253258496 -0.637946366
+## unemployment_rate        0.002653935 -0.003681103
+## college                 -0.003681103  0.022250496
+## 
+## [1] NA
+## [[1]]
+## NULL</code></pre>
+</div>
+<div id="part-2randomization-test" class="section level3">
+<h3>Part 2:Randomization Test</h3>
+<p>I performed a permutation test for my randomization test. First, I stated the null hypothesis and alternative hypotheses.</p>
+<p>Null hypothesis(H0): The mean age of Americans killed by police in 2015 is the same for males and females.
+Alternative hypothesis(Ha): The mean age of Americans killed by police in 2015 is different for males and females.</p>
+<p>I created a plot visualizing null distribution. There are more American males than American females who were killed by the police in 2015. The majority of the American males killed by the police in 2015 tend to be in their late-twenties late, and the majority of American females killed by the police in 2015 tend to be in their mid-forties.</p>
+<p>I calculated test statistic for categorical v. numeric variables for mean difference. The mean age difference between American males and females killed by the police in 2015 is 1.341866.</p>
+<pre class="r"><code>#Randomization Test
+#Plot Visualizing Null Distribution
+library(ggplot2)
+ggplot(crime,aes(age,fill=gender))+geom_histogram(bins=6.5)+facet_wrap(~gender,ncol=2)+theme(legend.position =&quot;none&quot;)</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<pre class="r"><code>#Test Statistic
+#Categorical v. Numeric: Mean difference
+crime%&gt;%group_by(gender)%&gt;%summarize(means=mean(age))%&gt;%summarize(&#39;mean_diff:&#39;=diff(means))</code></pre>
+<pre><code>## # A tibble: 1 x 1
+##   `mean_diff:`
+##          &lt;dbl&gt;
+## 1         1.34</code></pre>
+</div>
+<div id="part-2randomization-test-continued" class="section level3">
+<h3>Part 2:Randomization Test (Continued)</h3>
+<p>I then performed random permutations for 5000 times to see the distribution. I calculated the Two-Tailed P-value for permutation test. This is the probability of seeing mean difference when it is under “randomization distribution”. I compared with Welch’s t-test which assumes normality. Since the p-value is greater than 0.05, I cannot reject the null hypothesis. This indicates that the means of the two populations are not significantly different. The mean age of Americans killed by police in 2015 is the same for males and females.</p>
+<pre class="r"><code>#Random permutations for 5000 times
+set.seed(348)
+rand_dist &lt;- vector()
+for (i in 1:5000) {
+new &lt;- data.frame(age = sample(crime$age), gender = crime$gender)
+rand_dist[i] &lt;- mean(new[new$gender == &quot;Male&quot;, ]$age) -
+mean(new[new$gender == &quot;Female&quot;, ]$age)
+}
+{
+hist(rand_dist, main = &quot;&quot;, ylab = &quot;&quot;)
+abline(v = 1.341866, col = &quot;red&quot;)
+}</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre class="r"><code>#Two-Tailed P-value for permutation test
+#This is the probability of seeing mean difference when it is under &quot;randomization distribution&quot;.
+mean(rand_dist &gt; 1.341866 | rand_dist &lt; -1.341866)</code></pre>
+<pre><code>## [1] 0.6466</code></pre>
+<pre class="r"><code>#Welch&#39;s t-test:
+t.test(data=crime,age~gender) #p-value = 0.6361</code></pre>
+<pre><code>## 
+##  Welch Two Sample t-test
+## 
+## data:  age by gender
+## t = -0.48009, df = 21.069, p-value = 0.6361
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -7.153324  4.469591
+## sample estimates:
+## mean in group Female   mean in group Male 
+##             35.95000             37.29187</code></pre>
+</div>
+<div id="part-3linear-regression-model" class="section level3">
+<h3>Part 3:Linear Regression Model</h3>
+<p>I made a linear regression model predicting poverty_rate from age and gender with their interaction.</p>
+<p>I mean-centered numeric variables in the interaction. I could not get a reasonable interpretation from age=0, so I centered the mean difference in poverty_rate for gender at the average of age. This means that the difference in poverty_rate for gender at average age was 37.2.</p>
+<p>I then interpreted the coefficient estimates.#For individuals at the average age, males have average/predicted poverty_rate that is approximately 2.75 (b=2.25,t=0.90) greater than females. The p-value is less than 0.05.</p>
+<p>The equation from the regression after centering BMI for interaction between categorical and continuous is #predicted poverty_rate = 18.70+2.75(gender)-0.45(age_c)+0.34(gender*age).</p>
+<pre class="r"><code>#Mean-Centering Numeric Variables
+mean(crime$age)</code></pre>
+<pre><code>## [1] 37.23059</code></pre>
+<pre class="r"><code>data.frame(age=head(crime$age))</code></pre>
+<pre><code>##   age
+## 1  16
+## 2  27
+## 3  26
+## 4  25
+## 5  29
+## 6  29</code></pre>
+<pre class="r"><code>data.frame(age_c=head(crime$age-mean(crime$age)))</code></pre>
+<pre><code>##        age_c
+## 1 -21.230594
+## 2 -10.230594
+## 3 -11.230594
+## 4 -12.230594
+## 5  -8.230594
+## 6  -8.230594</code></pre>
+<pre class="r"><code>#Regression after centering BMI
+#Interaction between categorical and continuous
+crime$age_c&lt;-crime$age-mean(crime$age)
+fit&lt;-lm(poverty_rate~gender*age_c,data=crime)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = poverty_rate ~ gender * age_c, data = crime)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -21.752 -10.528  -2.664   8.314  58.398 
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)       18.6974     2.9895   6.254 9.57e-10 ***
+## genderMale         2.7468     3.0594   0.898   0.3698    
+## age_c             -0.4472     0.2504  -1.786   0.0748 .  
+## genderMale:age_c   0.3358     0.2554   1.315   0.1894    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 13.29 on 434 degrees of freedom
+## Multiple R-squared:  0.01925,    Adjusted R-squared:  0.01247 
+## F-statistic:  2.84 on 3 and 434 DF,  p-value: 0.03764</code></pre>
+<p>I plotted the regression and checked the ANOVA.</p>
+<pre class="r"><code>qplot(x=age,y=poverty_rate,color=gender,data=crime)+stat_smooth(method=&quot;lm&quot;,se=FALSE,fullrange=TRUE)</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<pre class="r"><code>#ANOVA to see if age slopes differ between the gender of male and female. To see if there is any interaction
+anova(fit)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: poverty_rate
+##               Df Sum Sq Mean Sq F value  Pr(&gt;F)  
+## gender         1     90   89.66  0.5074 0.47664  
+## age_c          1   1110 1110.12  6.2830 0.01255 *
+## gender:age_c   1    305  305.33  1.7281 0.18935  
+## Residuals    434  76681  176.69                  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>I checked the assumption of linearity, normality, and homoskedasticity graphically and using tests. The assumption of linearity, normality, and homoskedasticity appear to be met. The graphs do appear to be somewhat linear and normal.</p>
+<pre class="r"><code>#Assumption of Linearity and Homoskedasticity
+resids&lt;-fit$residuals
+fitvals&lt;-fit$fitted.values
+ggplot()+geom_point(aes(fitvals,resids))+geom_hline(yintercept=0,color=&#39;red&#39;)</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<pre class="r"><code>library(sandwich)
+library(lmtest)</code></pre>
+<pre><code>## Loading required package: zoo</code></pre>
+<pre><code>## 
+## Attaching package: &#39;zoo&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     as.Date, as.Date.numeric</code></pre>
+<pre class="r"><code>bptest(fit)</code></pre>
+<pre><code>## 
+##  studentized Breusch-Pagan test
+## 
+## data:  fit
+## BP = 4.7978, df = 3, p-value = 0.1872</code></pre>
+<pre class="r"><code>#Assumption of Normality
+ggplot()+geom_histogram(aes(resids),bins=20)</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
+<pre class="r"><code>ggplot()+geom_qq(aes(sample=resids))+geom_qq_line(aes(sample=resids),color=&#39;red&#39;)</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-12-3.png" width="672" /></p>
+<pre class="r"><code>ks.test(resids,&quot;pnorm&quot;,sd=sd(resids))</code></pre>
+<pre><code>## Warning in ks.test(resids, &quot;pnorm&quot;, sd = sd(resids)): ties should not be present
+## for the Kolmogorov-Smirnov test</code></pre>
+<pre><code>## 
+##  One-sample Kolmogorov-Smirnov test
+## 
+## data:  resids
+## D = 0.092654, p-value = 0.001084
+## alternative hypothesis: two-sided</code></pre>
+<p>I recomputed regressions results with robust standard errors via coeftest(…,vcov=vcovHC(..)). Doing so helped avoid violations of homoscedasticity/noise.</p>
+<p>Before robust standard errors, the standard errors were approximately 2.99, 3.06, 0.25, and 0.26, respectively. After robust standard errors, the standard errors were approximately 3.38, 3.44, 0.38, and 0.39. The proportion of the variation in the outcome explained by the model (r-squared) is 0.01925.</p>
+<pre class="r"><code>#Recomputing results with robust standard errors 
+
+#Before robust SEs
+summary(fit)$coef[,1:2]</code></pre>
+<pre><code>##                    Estimate Std. Error
+## (Intercept)      18.6973660  2.9894912
+## genderMale        2.7467784  3.0593725
+## age_c            -0.4471630  0.2503552
+## genderMale:age_c  0.3357949  0.2554417</code></pre>
+<pre class="r"><code>#After corrected SE
+coeftest(fit,vcov=vcovHC(fit))[,1:2]</code></pre>
+<pre><code>##                    Estimate Std. Error
+## (Intercept)      18.6973660  3.3751633
+## genderMale        2.7467784  3.4368640
+## age_c            -0.4471630  0.3818894
+## genderMale:age_c  0.3357949  0.3851093</code></pre>
+<pre class="r"><code>#R-squared 
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = poverty_rate ~ gender * age_c, data = crime)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -21.752 -10.528  -2.664   8.314  58.398 
+## 
+## Coefficients:
+##                  Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)       18.6974     2.9895   6.254 9.57e-10 ***
+## genderMale         2.7468     3.0594   0.898   0.3698    
+## age_c             -0.4472     0.2504  -1.786   0.0748 .  
+## genderMale:age_c   0.3358     0.2554   1.315   0.1894    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 13.29 on 434 degrees of freedom
+## Multiple R-squared:  0.01925,    Adjusted R-squared:  0.01247 
+## F-statistic:  2.84 on 3 and 434 DF,  p-value: 0.03764</code></pre>
+</div>
+<div id="part-4regression-model-with-bootstrapped-standard-errors" class="section level3">
+<h3>Part 4:Regression Model with Bootstrapped Standard Errors</h3>
+<p>I reran the same regression model (with interaction) and computed bootstrapped standard errors. I randomly sampled rows with replacement and repeated it 5000 times.</p>
+<p>The bootstrapped standard errors are approximately 3.10, 3.16, 0.35, and 0.36, respectively. The bootstrapped standard errors are smaller than the robust standard errors which are seen above and are larger than the original standard errors which are seen above. The p-value remains basically the same.</p>
+<pre class="r"><code>#Bootstrapped Standard Errors
+samp_distn&lt;-replicate(5000,{
+  boot_crime&lt;-boot_crime&lt;-crime[sample(nrow(crime),replace=TRUE),]
+  fit&lt;-lm(poverty_rate~gender*age_c,data=boot_crime)
+  coef(fit)
+}) #repeat 5000 times
+
+#Estimated SEs (resampling rows)
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%summarize_all(sd)</code></pre>
+<pre><code>##   (Intercept) genderMale     age_c genderMale:age_c
+## 1    3.096525   3.175844 0.3590898        0.3632219</code></pre>
+<pre class="r"><code># Empirical 95% CI
+samp_distn%&gt;%t%&gt;%as.data.frame%&gt;%gather%&gt;%group_by(key)%&gt;% summarize(lower=quantile(value,.025), upper=quantile(value,.975)) </code></pre>
+<pre><code>## # A tibble: 4 x 3
+##   key               lower  upper
+##   &lt;chr&gt;             &lt;dbl&gt;  &lt;dbl&gt;
+## 1 (Intercept)      12.8   25.1  
+## 2 age_c            -1.30   0.106
+## 3 genderMale       -3.74   8.91 
+## 4 genderMale:age_c -0.226  1.19</code></pre>
+</div>
+<div id="part-5logistic-regression" class="section level3">
+<h3>Part 5:Logistic Regression</h3>
+<p>I first added the code from the powerpoint slides to update class_diag to make sure that it worked correctly.</p>
+<pre class="r"><code>class_diag&lt;-function(probs,truth){
+  
+  if(is.numeric(truth)==FALSE &amp; is.logical(truth)==FALSE) truth&lt;-as.numeric(truth)-1
+  
+  tab&lt;-table(factor(probs&gt;.5,levels=c(&quot;FALSE&quot;,&quot;TRUE&quot;)),truth)
+  prediction&lt;-ifelse(probs&gt;.5,1,0)
+  acc=mean(truth==prediction)
+  sens=mean(prediction[truth==1]==1)
+  spec=mean(prediction[truth==0]==0)
+  ppv=mean(truth[prediction==1]==1)
+  
+  #CALCULATE EXACT AUC
+  ord&lt;-order(probs, decreasing=TRUE)
+  probs &lt;- probs[ord]; truth &lt;- truth[ord]
+  
+  TPR=cumsum(truth)/max(1,sum(truth)) 
+  FPR=cumsum(!truth)/max(1,sum(!truth))
+  
+  dup&lt;-c(probs[-1]&gt;=probs[-length(probs)], FALSE)
+  TPR&lt;-c(0,TPR[!dup],1); FPR&lt;-c(0,FPR[!dup],1)
+  
+  n &lt;- length(TPR)
+  auc&lt;- sum( ((TPR[-1]+TPR[-n])/2) * (FPR[-1]-FPR[-n]) )
+
+  data.frame(acc,sens,spec,ppv,auc)
+}</code></pre>
+<p>For the binary categorical variable, I used the variable, gender, and made Male=1 and Female=0. For the explanatory variables, I used household_quintile and age.</p>
+<pre class="r"><code>#Getting Binary Variable by Discretizing a Numeric 
+#From the variable of gender, making Male=1 and Female=0
+library(tidyverse)
+library(lmtest)
+sex&lt;-crime%&gt;%mutate(y=ifelse(gender==&quot;Male&quot;,1,0))
+sex</code></pre>
+<pre><code>## # A tibble: 438 x 12
+##      age gender race  state cause armed household_quint… poverty_rate
+##    &lt;int&gt; &lt;chr&gt;  &lt;chr&gt; &lt;chr&gt; &lt;chr&gt; &lt;chr&gt;            &lt;int&gt;        &lt;dbl&gt;
+##  1    16 Male   Black AL    Guns… No                   3         14.1
+##  2    27 Male   White LA    Guns… No                   1         28.8
+##  3    26 Male   White WI    Guns… No                   3         14.6
+##  4    25 Male   Hisp… CA    Guns… Fire…                3         11.7
+##  5    29 Male   White OH    Guns… No                   4          1.9
+##  6    29 Male   White AZ    Guns… No                   1         58  
+##  7    22 Male   Hisp… CA    Guns… Fire…                4         17.2
+##  8    35 Male   Hisp… CA    Guns… Non-…                4         12.2
+##  9    44 Male   White TX    Guns… Fire…                1         37.7
+## 10    31 Male   White MI    Guns… Other                2         18.4
+## # … with 428 more rows, and 4 more variables: unemployment_rate &lt;dbl&gt;,
+## #   college &lt;dbl&gt;, age_c &lt;dbl&gt;, y &lt;dbl&gt;</code></pre>
+<pre class="r"><code>sex%&gt;%group_by(sex$y)%&gt;%count() #20 females, 418 males</code></pre>
+<pre><code>## # A tibble: 2 x 2
+## # Groups:   sex$y [2]
+##   `sex$y`     n
+##     &lt;dbl&gt; &lt;int&gt;
+## 1       0    20
+## 2       1   418</code></pre>
+<p>I performed logistic regression predicting binary categorical variable of gender in y from two explanatory variables of household_quintile and age. I also found the coefficients.</p>
+<p>Going up 1 age increases log-odds by 0.01058, and going up 1 household_quintile decreases log-odds by 0.3158.</p>
+<p>Going up 1 age multiplies odds by a factor of approximately 1.0106, and going up 1 household_quintile multiplies odds by a factor of approcinately 0.7272.</p>
+<pre class="r"><code>#Logistic Regression
+fit&lt;-glm(y~age+household_quintile,data=sex,family=&quot;binomial&quot;)
+summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = y ~ age + household_quintile, family = &quot;binomial&quot;, 
+##     data = sex)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.7360   0.2431   0.2784   0.3373   0.4698  
+## 
+## Coefficients:
+##                    Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept)         3.51872    0.85782   4.102  4.1e-05 ***
+## age                 0.01058    0.01892   0.559   0.5759    
+## household_quintile -0.31854    0.17162  -1.856   0.0634 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 162.53  on 437  degrees of freedom
+## Residual deviance: 158.87  on 435  degrees of freedom
+## AIC: 164.87
+## 
+## Number of Fisher Scoring iterations: 6</code></pre>
+<pre class="r"><code>coeftest(fit)</code></pre>
+<pre><code>## 
+## z test of coefficients:
+## 
+##                     Estimate Std. Error z value  Pr(&gt;|z|)    
+## (Intercept)         3.518721   0.857822  4.1019 4.097e-05 ***
+## age                 0.010583   0.018920  0.5594   0.57592    
+## household_quintile -0.318536   0.171619 -1.8561   0.06344 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>#Exponentiate Coeffecients before Interpretation
+exp(coef(fit)) #coeffecient estimate</code></pre>
+<pre><code>##        (Intercept)                age household_quintile 
+##         33.7412608          1.0106393          0.7272127</code></pre>
+<p>I did a confusion matrix for logistic regression.</p>
+<p>The true positive rate (TPR) was 1, and the true negative rate (TNR) is 0. This means that the model is not predicting females since male was assigned to 1.</p>
+<p>The precision (PPV) was 0 which means that the proportion classified as females actually are females. The area of the curve (AUC) was 0.615251 which is considered to be poor.</p>
+<pre class="r"><code>#Confusion Matrix
+prob&lt;-predict(fit,type=&quot;response&quot;)
+pred&lt;-ifelse(prob&gt;.5,1,0)
+table(prediction=pred,truth=sex$y)%&gt;%addmargins</code></pre>
+<pre><code>##           truth
+## prediction   0   1 Sum
+##        1    20 418 438
+##        Sum  20 418 438</code></pre>
+<pre class="r"><code>#Computing Accuracy, Sensivity (TPR), and Specifity (TNR)
+(0+418)/438 #accuracy</code></pre>
+<pre><code>## [1] 0.9543379</code></pre>
+<pre class="r"><code>418/418 #sensitivity (TPR)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>0/20 # specificity (TNR)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>0/20 # precision (PPV)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>#Computing AUC
+library(pROC)</code></pre>
+<pre><code>## Type &#39;citation(&quot;pROC&quot;)&#39; for a citation.</code></pre>
+<pre><code>## 
+## Attaching package: &#39;pROC&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     cov, smooth, var</code></pre>
+<pre class="r"><code>class_diag(prob,sex$y)</code></pre>
+<pre><code>##         acc sens spec       ppv       auc
+## 1 0.9543379    1    0 0.9543379 0.6152512</code></pre>
+<pre class="r"><code>auc(sex$y,prob) #AUC</code></pre>
+<pre><code>## Setting levels: control = 0, case = 1</code></pre>
+<pre><code>## Setting direction: controls &lt; cases</code></pre>
+<pre><code>## Area under the curve: 0.6153</code></pre>
+<p>I used ggplot to plot density of log-odds (logit) by the binary outcome variable of gender in y. The plot only has one curve because the model does not predict females and only predicts males.</p>
+<pre class="r"><code>#Plot density of log-odds (logit)
+sex$logit&lt;-predict(fit,type=&quot;link&quot;)
+sex%&gt;%ggplot()+geom_density(aes(logit,color=y,fill=y),alpha=.4)+theme(legend.position=c(.85,.85))+geom_vline(xintercept=0)+xlab(&quot;predictor (logit)&quot;)</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>I created and plotted a ROC curve. The curve shows that the AUC should be approximately 0.6.</p>
+<p>This is because generally, if the TPR was 1 and FPR was 0, then the line would equal to AUC=1. If TPR was equal to FPR, then the line would equal to AUC=0.5. Since the line shown in this ROC curve is below TPR=1 and FPR=0 but above TPR equal to FPR, the AUC should be approximately 0.6.</p>
+<p>I calculated AUC with a package to make it easier to find. The AUC was 0.6152512 which is considered to be poor.</p>
+<pre class="r"><code>#ROC curve
+library(plotROC)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;plotROC&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:pROC&#39;:
+## 
+##     ggroc</code></pre>
+<pre class="r"><code>ROCplot&lt;-ggplot(sex)+geom_roc(aes(d=y,m=prob),n.cuts=0)
+ROCplot</code></pre>
+<p><img src="/project2_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<pre class="r"><code>calc_auc(ROCplot) #AUC</code></pre>
+<pre><code>##   PANEL group       AUC
+## 1     1    -1 0.6152512</code></pre>
+<p>I performed a 10-fold CV and reported average out-of-sample accuracy, sensitivity, recall, and AUC using class_diag. I got NA as the answer for all of them (accuracy, sensitivity, specificity, recall, and AUC). I think NA showed for all of them because the model does not predict females.</p>
+<pre class="r"><code>#Perform 10-fold CV
+set.seed(1234)
+k=10
+
+data&lt;-sex[sample(nrow(sex)),]
+folds&lt;-cut(seq(1:nrow(sex)),breaks=k,labels=F)
+
+diags&lt;-NULL
+for(i in 1:k){
+  train&lt;-data[folds!=i,]
+  test&lt;-data[folds==i,]
+  truth&lt;-test$gender
+  
+  fit&lt;-glm(y~age+household_quintile,data=train,family=&quot;binomial&quot;)
+  probs&lt;-predict(fit,newdata=test,type=&quot;response&quot;)
+  
+  diags&lt;-rbind(diags,class_diag(probs,truth))
+}</code></pre>
+<pre><code>## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion
+
+## Warning in class_diag(probs, truth): NAs introduced by coercion</code></pre>
+<pre class="r"><code>summarize_all(diags,mean)</code></pre>
+<pre><code>##   acc sens spec ppv auc
+## 1  NA   NA   NA  NA  NA</code></pre>
+</div>
+<div id="part-6lasso-regression" class="section level3">
+<h3>Part 6:LASSO regression</h3>
+<p>I performed a LASSO regression on the continuous numeric variable of age and inputted the rest of my numeric variables like household_quintile, poverty_rate, unemployment_rate, and college as predictors.</p>
+<p>From lambda, the simplest model whose accuracy is near that of the best is poverty_rate. The variable, poverty_rate, is also the only variable that is retained in the matrix. I used poverty_rate in the 10-fold CV.</p>
+<p>I performed a 10-fold CV and compared the residual standard error (RMSE). The residual standard error is 12.45 on 392 degrees of freedom. Since the residual standard error is not a smaller value, then it is not the best fit.</p>
+<pre class="r"><code>#LASSO regression
+library(glmnet)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## 
+## Attaching package: &#39;Matrix&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:tidyr&#39;:
+## 
+##     expand, pack, unpack</code></pre>
+<pre><code>## Loaded glmnet 3.0-2</code></pre>
+<pre class="r"><code>y&lt;-as.matrix(crime$age)
+x&lt;-crime%&gt;%select(-age,-gender,-race,-state,-cause,-armed,-age_c)%&gt;%mutate_all(scale)%&gt;%as.matrix #to remove variables that were not numeric/continuous but to also keep the rest of the variables that were numeric 
+#head(x)
+
+#Simplest Model from lambda
+cv&lt;-cv.glmnet(x,y) 
+lasso&lt;-glmnet(x,y,lambda=cv$lambda.1se) 
+coef(lasso)</code></pre>
+<pre><code>## 5 x 1 sparse Matrix of class &quot;dgCMatrix&quot;
+##                               s0
+## (Intercept)         3.723059e+01
+## household_quintile  .           
+## poverty_rate       -1.775509e-16
+## unemployment_rate   .           
+## college             .</code></pre>
+<pre class="r"><code>#Perform 10-fold CV with continuous numeric variables
+set.seed(1234)
+k=10 #choose number of folds
+
+data1&lt;-crime[sample(nrow(crime)),]  
+folds&lt;-cut(seq(1:nrow(crime)),breaks=k,labels=F)
+
+diags&lt;-NULL 
+for(i in 1:k){
+  train&lt;-data1[folds!=i,] 
+  test&lt;-data1[folds==i,]
+  
+  fit&lt;-lm(age~poverty_rate,data=train) 
+  yhat&lt;-predict(fit,newdata=test)
+  
+  diags&lt;-mean((test$age-yhat)^2) 
+}
+
+mean(diags)</code></pre>
+<pre><code>## [1] 168.8088</code></pre>
+<pre class="r"><code>summary(fit)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = age ~ poverty_rate, data = train)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -22.327  -9.575  -1.948   7.727  48.150 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  39.55873    1.21375  32.592   &lt;2e-16 ***
+## poverty_rate -0.10903    0.04807  -2.268   0.0239 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 12.69 on 392 degrees of freedom
+## Multiple R-squared:  0.01296,    Adjusted R-squared:  0.01044 
+## F-statistic: 5.145 on 1 and 392 DF,  p-value: 0.02385</code></pre>
+</div>
+</div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+      
+    </div>
+
+    
+    <footer>
+  <div id="footer">
+    <div class="container">
+      <p class="text-muted">&copy; All rights reserved. Powered by <a href="https://gohugo.io/">Hugo</a> and
+      <a href="http://www.github.com/nurlansu/hugo-sustain/">sustain</a> with ♥</p>
+    </div>
+  </div>
+</footer>
+<div class="footer"></div>
+
+
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+<script src="/js/docs.min.js"></script>
+<script src="/js/main.js"></script>
+
+<script src="/js/ie10-viewport-bug-workaround.js"></script>
+
+
+    
+  </body>
+</html>
